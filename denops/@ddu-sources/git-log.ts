@@ -12,7 +12,7 @@ export class Source extends BaseSource<Params> {
   gather(args: GatherArguments<Params>): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        const lines = await fn.system("git log --graph --oneline")
+        const lines = await fn.system(args.denops, "git log --graph --oneline")
 
         controller.enqueue(lines.map((line, i) => {
           return {
