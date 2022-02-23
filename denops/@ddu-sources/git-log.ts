@@ -14,10 +14,7 @@ export class Source extends BaseSource<Params> {
       async start(controller) {
         controller.enqueue([
           {
-            word: 'hoge',
-            graph: '*',
-            hash: 'hioafeioafejaiofuearea',
-            info: 'infooo',
+            text: 'hoge',
           }
         ]);
 
