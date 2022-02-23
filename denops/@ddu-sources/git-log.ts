@@ -13,6 +13,7 @@ export class Source extends BaseSource<Params> {
     return new ReadableStream({
       async start(controller) {
         const lines = await fn.system(args.denops, "git log --graph --oneline");
+        console.log(lines);
 
         controller.enqueue(lines.map((line, i) => {
           return {
