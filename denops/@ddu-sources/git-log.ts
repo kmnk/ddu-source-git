@@ -17,7 +17,7 @@ export class Source extends BaseSource<Params> {
         controller.enqueue(lines.map((line, i) => {
           return {
             word: line
-          }
+          };
         });
 
         controller.close();
