@@ -18,7 +18,7 @@ export class Source extends BaseSource<Params> {
           return {
             word: line
           }
-        );
+        });
 
         controller.close();
       },
