@@ -6,12 +6,12 @@ import { ActionData } from "../@ddu-kinds/git-log.ts"
 
 type Params = Record<never, never>;
 
+const date = "format:'%Y-%m-%dT%H:%M:%S'";
+const dateSpacer = "                 ";
+const pretty = "format:'%H %ad %an%d %s'";
+
 export class Source extends BaseSource<Params> {
   kind = "git-log";
-
-  const date = "format:'%Y-%m-%dT%H:%M:%S'";
-  const dateSpacer = "                 ";
-  const pretty = "format:'%H %ad %an%d %s'";
 
   gather(args: GatherArguments<Params>): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
