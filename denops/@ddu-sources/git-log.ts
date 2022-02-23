@@ -1,4 +1,4 @@
-import * as fn from "https://deno.land/x/denops_std/function/mod.ts";
+import * as fn from "https://deno.land/x/denops_std@v3.1.0/function/mod.ts";
 import type { GatherArguments } from "https://deno.land/x/ddu_vim@v0.14/base/source.ts";
 import type { Item } from "https://deno.land/x/ddu_vim@v0.14/types.ts";
 import { BaseSource } from "https://deno.land/x/ddu_vim@v0.14/types.ts";
