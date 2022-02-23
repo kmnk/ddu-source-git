@@ -7,10 +7,8 @@ import {
 import { Denops, fn } from "https://deno.land/x/ddu_vim@v0.14/deps.ts";
 
 export type ActionData = {
-  line: string;
-  graph: string;
+  word: string;
   hash: string;
-  info: string;
 };
 
 type Params = Record<never, never>;
