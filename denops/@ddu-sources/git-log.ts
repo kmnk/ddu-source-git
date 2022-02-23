@@ -12,18 +12,13 @@ export class Source extends BaseSource<Params> {
   gather(args: GatherArguments<Params>): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        const lines = await fn.system(args.denops, "git log --graph --oneline");
-        console.log(lines);
+        const lines = await fn.systemlist(args.denops, "git log --graph --oneline");
 
-        controller.enqueue([{
-          word: lines
-        }]);
-
-//        controller.enqueue(lines.map((line, i) => {
-//          return {
-//            word: line
-//          };
-//        }));
+        controller.enqueue(lines.map((line, i) => {
+          return {
+            word: line
+          };
+        }));
 
         controller.close();
       },
