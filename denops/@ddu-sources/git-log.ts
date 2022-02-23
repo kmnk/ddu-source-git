@@ -12,11 +12,15 @@ export class Source extends BaseSource<Params> {
   gather(args: GatherArguments<Params>): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        controller.enqueue([
-          {
-            text: 'hoge',
-          }
-        ]);
+        controller.enqueue({
+            text: "hoge",
+        });
+        controller.enqueue({
+            text: "fuga",
+        });
+        controller.enqueue({
+            text: "piyo",
+        });
 
         controller.close();
       },
