@@ -7,7 +7,7 @@ import { ActionData } from "../@ddu-kinds/git-log.ts"
 type Params = Record<never, never>;
 
 const date = "format:'%Y-%m-%dT%H:%M:%S'";
-const dateSpacer = "                 ";
+const dateSpacer = "                   ";
 const pretty = "format:'%H %ad %an%d %s'";
 
 export class Source extends BaseSource<Params> {
