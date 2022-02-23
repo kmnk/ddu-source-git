@@ -20,7 +20,7 @@ export class Source extends BaseSource<Params> {
 
         controller.enqueue(lines.map((line, i) => {
           const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) (.+)$/);
-          if (matches !== null) {
+          if (matches) {
             const graph = matches[1];
             const hash = matches[2];
             const shortHash = hash.substr(0, 8);
@@ -32,7 +32,7 @@ export class Source extends BaseSource<Params> {
               hash: hash,
             }
           } else {
-            const graph = line.match(/^[*|\\\/ ]+]$/)
+            const graph = line.match(/^[*|\\\/ ]+$/)
 
             return {
               word: `${dateSpacer} ${graph}`,
