@@ -32,7 +32,7 @@ export class Source extends BaseSource<Params> {
 //              hash: hash,
 //            }
 //          } else {
-            const graph = line.match(/^[*|\\\/ ]+/)
+            const graph = line.match(/^[*|\\\/ ]+/);
 
             return {
               word: `${dateSpacer} ${graph}`,
