@@ -12,11 +12,9 @@ export class Source extends BaseSource<Params> {
   gather(args: GatherArguments<Params>): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        const date = "format:'%Y-%m-%dT%H:%M:%S'";
         const dateSpacer = "                   ";
-        const pretty = "format:'%H %ad %an%d %s'";
 
-        const lines = await fn.systemlist(args.denops, `git log --graph --oneline --date=${date} --pretty=${pretty}`);
+        const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an%d %s'");
 
         controller.enqueue(lines.map((line, i) => {
           const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) (.+)$/);
@@ -35,7 +33,7 @@ export class Source extends BaseSource<Params> {
             const graph = line.match(/^[*|\\\/ ]+$/)
 
             return {
-              word: `${dateSpacer} ${graph}`,
+              word: `                    ${graph}`,
               hash: "",
             }
           }
