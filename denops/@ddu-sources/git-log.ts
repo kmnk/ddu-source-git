@@ -36,6 +36,10 @@ export class Source extends BaseSource<Params> {
 
             return {
               word: "test",
+              action: {
+                bufNr: "hoge",
+                lineNr: i + 1,
+              },
               hash: "",
             };
 //          }
