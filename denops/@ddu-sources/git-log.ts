@@ -19,7 +19,7 @@ export class Source extends BaseSource<Params> {
         const lines = await fn.systemlist(args.denops, `git log --graph --oneline --date=${date} --pretty=${pretty}`);
 
         controller.enqueue(lines.map((line, i) => {
-          const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) (.+)$/);
+//          const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) (.+)$/);
 //          if (matches) {
 //            const graph = matches[1];
 //            const hash = matches[2];
