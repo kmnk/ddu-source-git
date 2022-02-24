@@ -35,7 +35,7 @@ export class Source extends BaseSource<Params> {
             const graph = line.match(/^[*|\\\/ ]+/);
 
             return {
-              word: `${dateSpacer} ${graph}`,
+              word: "test",
               hash: "",
             };
 //          }
