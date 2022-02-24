@@ -16,7 +16,8 @@ export class Source extends BaseSource<Params> {
   gather(args: GatherArguments<Params>): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        const lines = await fn.systemlist(args.denops, `git log --graph --oneline --date=${date} --pretty=${pretty}`);
+        //const lines = await fn.systemlist(args.denops, `git log --graph --oneline --date=${date} --pretty=${pretty}`);
+        const lines = ['hoge', 'fuga'];
 
         controller.enqueue(lines.map((line, i) => {
 //          const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) (.+)$/);
