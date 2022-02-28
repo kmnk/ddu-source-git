@@ -12,7 +12,10 @@ export class Source extends BaseSource<Params> {
   gather(args: GatherArguments<Params>): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an%d %s'");
+        // こっちはいけるが
+        //const lines = await fn.systemlist(args.denops, "git log --graph --oneline");
+        // こっちはだめ
+        const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an%d %s' | cat");
 
         controller.enqueue(lines.map((line, i) => {
           return {
