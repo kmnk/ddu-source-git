@@ -14,8 +14,10 @@ export class Source extends BaseSource<Params> {
       async start(controller) {
         // こっちはいけるが
         //const lines = await fn.systemlist(args.denops, "git log --graph --oneline");
+        // これは？
+        const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an %s' | cat");
         // こっちはだめ
-        const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an%d %s' | cat");
+        //const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an%d %s' | cat");
 
         controller.enqueue(lines.map((line, i) => {
           return {
