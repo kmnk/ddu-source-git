@@ -16,6 +16,7 @@ export class Source extends BaseSource<Params> {
         //const lines = await fn.systemlist(args.denops, "git log --graph --oneline | cat");
         // こっちはだめ
         //const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an%d %s' | cat");
+        // an ないver
         const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %d %s' | cat");
 
         controller.enqueue(lines.map((line, i) => {
