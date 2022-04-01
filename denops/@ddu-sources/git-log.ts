@@ -13,11 +13,11 @@ export class Source extends BaseSource<Params> {
     return new ReadableStream({
       async start(controller) {
         // こっちはいけるが
-        //const lines = await fn.systemlist(args.denops, "git log --graph --oneline | cat");
+        const lines = await fn.systemlist(args.denops, "git log --graph --oneline | cat");
         // こっちはだめ
         //const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an%d %s' | cat");
         // %d ないver これもだめ
-        const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an %s' | cat");
+        //const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an %s' | cat");
 
         controller.enqueue(lines.map((line, i) => {
           return {
