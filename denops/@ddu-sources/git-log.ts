@@ -34,7 +34,7 @@ export class Source extends BaseSource<Params> {
             const graph = line.match(/^[*|\\\/ ]+$/)
 
             return {
-              word: `                    ${graph}`,
+              word: `                 ${graph}`,
               hash: "",
             }
           }
