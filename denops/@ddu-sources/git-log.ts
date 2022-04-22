@@ -12,12 +12,16 @@ export class Source extends BaseSource<Params> {
   gather(args: GatherArguments<Params>): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
+        // this parameters create lines like this
+        //
+        // *   ~~longhash~~ YYYY/mm/dd HH:MM AUTHORNAME COMMENT (HEAD -> master)
+        // |\
+        // | * ~~longhash~~ YYYY/mm/dd HH:MM AUTHORNAME COMMENT
+        // |/
+        // * ~~longhash~~ YYYY/mm/dd HH:MM AUTHORNAME COMMENT
         const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y/%m/%d %H:%M' --pretty=format:'%H %ad %an %s%d' | cat");
 
         controller.enqueue(lines.map((line, i) => {
-          //return {
-          //    word: line,
-          //};
           const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}) (.+)$/);
           if (matches) {
             const graph = matches[1];
