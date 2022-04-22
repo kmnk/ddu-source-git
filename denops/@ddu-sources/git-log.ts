@@ -12,37 +12,32 @@ export class Source extends BaseSource<Params> {
   gather(args: GatherArguments<Params>): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        // こっちはいけるが
-        //const lines = await fn.systemlist(args.denops, "git log --graph --oneline | cat");
-        // こっちはだめ
         const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an%d %s' | cat");
-        // %d ないver これもだめ
-        //const lines = await fn.systemlist(args.denops, "git log --graph --oneline --date=format:'%Y-%m-%dT%H:%M:%S' --pretty=format:'%H %ad %an %s' | cat");
 
         controller.enqueue(lines.map((line, i) => {
-          return {
-              word: line,
-          };
-          //const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) (.+)$/);
-          //if (matches) {
-          //  const graph = matches[1];
-          //  const hash = matches[2];
-          //  const shortHash = hash.substr(0, 8);
-          //  const date = matches[3];
-          //  const info = matches[4];
+//          return {
+//              word: line,
+//          };
+          const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) (.+)$/);
+          if (matches) {
+            const graph = matches[1];
+            const hash = matches[2];
+            const shortHash = hash.substr(0, 8);
+            const date = matches[3];
+            const info = matches[4];
 
-          //  return {
-          //    word: `${date} ${graph} ${shortHash} ${info}`,
-          //    hash: hash,
-          //  }
-          //} else {
-          //  const graph = line.match(/^[*|\\\/ ]+$/)
+            return {
+              word: `${date} ${graph} ${shortHash} ${info}`,
+              hash: hash,
+            }
+          } else {
+            const graph = line.match(/^[*|\\\/ ]+$/)
 
-          //  return {
-          //    word: `                    ${graph}`,
-          //    hash: "",
-          //  }
-          //}
+            return {
+              word: `                    ${graph}`,
+              hash: "",
+            }
+          }
         }));
 
         controller.close();
