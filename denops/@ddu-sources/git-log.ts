@@ -28,7 +28,7 @@ export class Source extends BaseSource<Params> {
             const comment = matches[5];
 
             return {
-              word: `${date} ${graph} ${shortHash} ${comment} ${info}`,
+              word: `${date} x ${graph} x ${shortHash} x ${comment} x ${info}`,
               hash: hash,
             }
           } else {
