@@ -18,16 +18,17 @@ export class Source extends BaseSource<Params> {
 //          return {
 //              word: line,
 //          };
-          const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) (.+)$/);
+          const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) ([(][^)]+[)] )?(.+)$/);
           if (matches) {
             const graph = matches[1];
             const hash = matches[2];
             const shortHash = hash.substr(0, 8);
             const date = matches[3];
             const info = matches[4];
+            const comment = matches[5];
 
             return {
-              word: `${date} ${graph} ${shortHash} ${info}`,
+              word: `${date} ${graph} ${shortHash} ${comment} ${info}`,
               hash: hash,
             }
           } else {
