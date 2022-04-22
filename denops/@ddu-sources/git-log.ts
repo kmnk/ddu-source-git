@@ -18,7 +18,7 @@ export class Source extends BaseSource<Params> {
 //          return {
 //              word: line,
 //          };
-          const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) ([(][^)]+[)] )?(.+)$/);
+          const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}) (\([^\)]+\)\s)?(.+)$/);
           if (matches) {
             const graph = matches[1];
             const hash = matches[2];
