@@ -18,6 +18,7 @@ export class Source extends BaseSource<Params> {
           //return {
           //    word: line,
           //};
+          // * 3bf41b22599ad6d212c12d3472322b035edfd0ec 2021/10/16 21:32:55 KMNK Add empty candidate to status source (HEAD -> master)
           const matches = line.match(/^([*|\\\/ ]+) ([0-9a-z]+) (\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}:\d{2}) (.+)$/);
           if (matches) {
             const graph = matches[1];
