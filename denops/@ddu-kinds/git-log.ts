@@ -17,7 +17,7 @@ export class Kind extends BaseKind<Params> {
     string,
     (args: ActionArguments<Params>) => Promise<ActionFlags>
   > = {
-    yank: async(args) {
+    yank: async(args) => {
       for (const item of args.items) {
         const action = item?.action as ActionData;
         const hash = action.hash;
