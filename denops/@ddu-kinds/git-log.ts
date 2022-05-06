@@ -33,11 +33,11 @@ export class Kind extends BaseKind<Params> {
 }
 
 const yank = async(denops: Denops, str: string) => {
-  await fn.setreg(args.denops, '"', hash);
-  if (await fn.has(args.denops, "clipboard")) {
+  await fn.setreg(denops, '"', hash);
+  if (await fn.has(denops, "clipboard")) {
     await fn.setreg(
-      args.denops,
-      await args.denops.eval("v:register"),
+      denops,
+      await denops.eval("v:register"),
       str,
     );
   }
