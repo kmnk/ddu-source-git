@@ -7,7 +7,6 @@ import {
 import { Denops, fn } from "https://deno.land/x/ddu_vim@v1.5.0/deps.ts";
 
 export type ActionData = {
-  word: string;
   hash: string;
 };
 
@@ -18,16 +17,13 @@ export class Kind extends BaseKind<Params> {
     string,
     (args: ActionArguments<Params>) => Promise<ActionFlags>
   > = {
-    append: async (args: { denops: Denops; items: DduItem[] }) => {
+    yank: async(args) {
       for (const item of args.items) {
-        await paste(args.denops, item, "p");
+        const action = item?.action as ActionData;
+        const hash = action.hash;
+        await fn.setreg(args.denops, '"', hash);
       }
-      return Promise.resolve(ActionFlags.None);
-    },
-    insert: async (args: { denops: Denops; items: DduItem[] }) => {
-      for (const item of args.items) {
-        await paste(args.denops, item, "P");
-      }
+
       return Promise.resolve(ActionFlags.None);
     },
   };

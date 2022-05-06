@@ -32,15 +32,19 @@ export class Source extends BaseSource<Params> {
 
             return {
               word: `${date} ${graph} ${shortHash} ${info}`,
-              hash: hash,
-            }
+              action: {
+                hash: hash,
+              },
+            } as Item<ActionData>;
           } else {
             const graph = line.match(/^[*|\\\/ ]+$/)
 
             return {
               word: `                 ${graph}`,
-              hash: "",
-            }
+              action: {
+                hash: "",
+              },
+            } as Item<ActionData>;
           }
         }));
 
