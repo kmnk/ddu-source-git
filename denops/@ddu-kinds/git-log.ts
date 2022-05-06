@@ -23,7 +23,6 @@ export class Kind extends BaseKind<Params> {
         const hash = action.hash;
         yank(args.denops, hash);
       }
-
       return Promise.resolve(ActionFlags.None);
     },
   };
@@ -39,7 +38,7 @@ const yank = async(denops: Denops, str: string) => {
     await fn.setreg(
       args.denops,
       await args.denops.eval("v:register"),
-      hash,
+      str,
     );
   }
 };
