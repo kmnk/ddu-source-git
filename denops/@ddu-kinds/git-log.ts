@@ -36,24 +36,21 @@ export class Kind extends BaseKind<Params> {
     revert: async(args) => {
       const item = args.item[0];
       const hash = action.hash;
-      await args.denops.call("ddu#event", "git-log", "close");
-      await args.denops.call("ddu#event", "git-log", "close");
+      await args.denops.call("ddu#event", "git-log", "cancel");
       await args.denops.cmd(`Git revert ${hash}`);
       return Promise.resolve(ActionFlags.None);
     },
     reset: async(args) => {
       const item = args.item[0];
       const hash = action.hash;
-      await args.denops.call("ddu#event", "git-log", "close");
-      await args.denops.call("ddu#event", "git-log", "close");
+      await args.denops.call("ddu#event", "git-log", "cancel");
       await args.denops.cmd(`Git reset ${hash}`);
       return Promise.resolve(ActionFlags.None);
     },
     reset_hard: async(args) => {
       const item = args.item[0];
       const hash = action.hash;
-      await args.denops.call("ddu#event", "git-log", "close");
-      await args.denops.call("ddu#event", "git-log", "close");
+      await args.denops.call("ddu#event", "git-log", "cancel");
       await args.denops.cmd(`Git reset --hard ${hash}`);
       return Promise.resolve(ActionFlags.None);
     },
