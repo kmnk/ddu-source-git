@@ -41,7 +41,7 @@ export class Kind extends BaseKind<Params> {
       }
       return Promise.resolve({
         kind: "terminal",
-        cmds: ["git revert", hash],
+        cmds: ["git", "revert", hash],
       });
     },
     reset: async(args) => {
