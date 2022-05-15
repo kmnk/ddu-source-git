@@ -25,6 +25,14 @@ export class Kind extends BaseKind<Params> {
       }
       return Promise.resolve(ActionFlags.None);
     },
+    yank2: async(args) => {
+      for (const item of args.items) {
+        const action = item?.action as ActionData;
+        const hash = action.hash;
+        yank(args.denops, hash);
+      }
+      return Promise.resolve(ActionFlags.None);
+    },
     revert: async(args) => {
       const item = args.item[0];
       const hash = action.hash;
