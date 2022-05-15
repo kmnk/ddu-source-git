@@ -25,7 +25,17 @@ export class Kind extends BaseKind<Params> {
       }
       return Promise.resolve(ActionFlags.None);
     },
+    revert: async(args) => {
+      const item = args.item[0];
+      const hash = action.hash;
+      await args.denops.cmd(`Git revert ${hash}`);
+    },
     reset: async(args) => {
+      const item = args.item[0];
+      const hash = action.hash;
+      await args.denops.cmd(`Git reset ${hash}`);
+    },
+    reset_hard: async(args) => {
       const item = args.item[0];
       const hash = action.hash;
       await args.denops.cmd(`Git reset ${hash}`);
