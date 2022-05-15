@@ -36,9 +36,13 @@ export class Kind extends BaseKind<Params> {
     revert: async(args) => {
       const item = args.item[0];
       const hash = action.hash;
-      await args.denops.call("ddu#event", "git-log", "cancel");
-      await args.denops.cmd(`silent Git revert ${hash}`);
-      return Promise.resolve(ActionFlags.None);
+      if (hash === '') {
+        return Promise.resolve(ActionFlags.None);
+      }
+      return Promise.resolve({
+        kind: "terminal",
+        cmds: ["git revert", hash],
+      });
     },
     reset: async(args) => {
       const item = args.item[0];
