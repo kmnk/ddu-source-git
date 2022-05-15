@@ -28,6 +28,7 @@ export class Kind extends BaseKind<Params> {
     revert: async(args) => {
       const item = args.item[0];
       const hash = action.hash;
+      await args.denops.call('ddu#event', 'close');
       await args.denops.cmd(`Git revert ${hash}`);
       return Promise.resolve(ActionFlags.None);
     },
