@@ -37,7 +37,7 @@ export class Kind extends BaseKind<Params> {
       const item = args.items[0];
       const action = item?.action as ActionData;
       const hash = action.hash;
-      await args.denops.call("ddu#event", "git-log", "close");
+      await args.denops.call("ddu#event", "git-log", "cancel");
       await args.denops.cmd(`Git revert ${hash}`);
       return Promise.resolve(ActionFlags.None);
     },
@@ -45,7 +45,7 @@ export class Kind extends BaseKind<Params> {
       const item = args.items[0];
       const action = item?.action as ActionData;
       const hash = action.hash;
-      await args.denops.call("ddu#event", "git-log", "close");
+      await args.denops.call("ddu#event", "git-log", "cancel");
       await args.denops.cmd(`Git reset ${hash}`);
       return Promise.resolve(ActionFlags.None);
     },
@@ -53,7 +53,7 @@ export class Kind extends BaseKind<Params> {
       const item = args.items[0];
       const action = item?.action as ActionData;
       const hash = action.hash;
-      await args.denops.call("ddu#event", "git-log", "close");
+      await args.denops.call("ddu#event", "git-log", "cancel");
       await args.denops.cmd(`Git reset --hard ${hash}`);
       return Promise.resolve(ActionFlags.None);
     },
