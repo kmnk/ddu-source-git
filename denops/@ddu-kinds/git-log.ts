@@ -58,18 +58,18 @@ export class Kind extends BaseKind<Params> {
     },
   };
 
-  getPreviewer(args: {
-    item: DduItem;
-  }): Promise<Previewer | undefined> {
-    const action = args.item.action as ActionData;
-    if (!action || !action.hash) {
-      return Promise.resolve(undefined);
-    }
-    return Promise.resolve({
-      kind: "terminal",
-      cmds: [`git revert ${hash}`],
-    });
-  }
+//  getPreviewer(args: {
+//    item: DduItem;
+//  }): Promise<Previewer | undefined> {
+//    const action = args.item.action as ActionData;
+//    if (!action || !action.hash) {
+//      return Promise.resolve(undefined);
+//    }
+//    return Promise.resolve({
+//      kind: "terminal",
+//      cmds: [`git revert ${hash}`],
+//    });
+//  }
 
   params(): Params {
     return {};
