@@ -41,8 +41,8 @@ export class Kind extends BaseKind<Params> {
       //await args.denops.cmd(`Git revert ${hash}`);
       //return Promise.resolve(ActionFlags.None);
       return Promise.resolve({
-        kind: "terminal",
-        cmds: ["git", "revert", hash],
+        kind: "buffer",
+        cmds: [`git revert ${hash}`],
       });
     },
     reset: async(args) => {
