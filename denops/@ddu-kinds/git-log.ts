@@ -37,13 +37,8 @@ export class Kind extends BaseKind<Params> {
       const item = args.items[0];
       const action = item?.action as ActionData;
       const hash = action.hash;
-      //await args.denops.call("ddu#event", "git-log", "cancel");
-      //await args.denops.cmd(`Git revert ${hash}`);
-      //return Promise.resolve(ActionFlags.None);
-      return Promise.resolve({
-        kind: "buffer",
-        cmds: [`git revert ${hash}`],
-      });
+      await args.denops.cmd(`Git revert ${hash}`);
+      return Promise.resolve(ActionFlags.None);
     },
     reset: async(args) => {
       const item = args.items[0];
@@ -62,6 +57,19 @@ export class Kind extends BaseKind<Params> {
       return Promise.resolve(ActionFlags.None);
     },
   };
+
+  getPreviewer(args: {
+    item: DduItem;
+  }): Promise<Previewer | undefined> {
+    const action = args.item.action as ActionData;
+    if (!action || !action.hash) {
+      return Promise.resolve(undefined);
+    }
+    return Promise.resolve({
+      kind: "terminal",
+      cmds: [`git revert ${hash}`],
+    });
+  }
 
   params(): Params {
     return {};
