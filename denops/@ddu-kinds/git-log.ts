@@ -3,8 +3,8 @@ import {
   ActionFlags,
   BaseKind,
   DduItem,
-} from "https://deno.land/x/ddu_vim@v1.6.0/types.ts";
-import { Denops, fn } from "https://deno.land/x/ddu_vim@v1.6.0/deps.ts";
+} from "https://deno.land/x/ddu_vim@v1.7.0/types.ts";
+import { Denops, fn } from "https://deno.land/x/ddu_vim@v1.7.0/deps.ts";
 
 export type ActionData = {
   hash: string;
