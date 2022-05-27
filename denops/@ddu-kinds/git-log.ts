@@ -38,6 +38,7 @@ export class Kind extends BaseKind<Params> {
       const action = item?.action as ActionData;
       const hash = action.hash;
       await args.denops.cmd(`Git revert ${hash}`);
+      await args.denops.call("ddu#event", "git-log", "cancel");
       return Promise.resolve(ActionFlags.None);
     },
     reset: async(args) => {
