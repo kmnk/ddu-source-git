@@ -23,7 +23,7 @@ export class Kind extends BaseKind<Params> {
         const hash = action.hash;
         yank(args.denops, hash);
       }
-      return Promise.resolve(ActionFlags.None);
+      return Promise.resolve(ActionFlags.Persist);
     },
     yank2: async(args) => {
       for (const item of args.items) {
