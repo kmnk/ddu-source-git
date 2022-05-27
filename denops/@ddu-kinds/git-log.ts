@@ -38,6 +38,7 @@ export class Kind extends BaseKind<Params> {
       const action = item?.action as ActionData;
       const hash = action.hash;
       await args.denops.cmd(`Git revert ${hash}`);
+      await args.denops.call("ddu#ui#ff#do_action", "quit");
       return Promise.resolve(ActionFlags.None);
     },
     reset: async(args) => {
@@ -45,6 +46,7 @@ export class Kind extends BaseKind<Params> {
       const action = item?.action as ActionData;
       const hash = action.hash;
       await args.denops.cmd(`Git reset ${hash}`);
+      await args.denops.call("ddu#ui#ff#do_action", "quit");
       return Promise.resolve(ActionFlags.None);
     },
     reset_hard: async(args) => {
@@ -52,6 +54,7 @@ export class Kind extends BaseKind<Params> {
       const action = item?.action as ActionData;
       const hash = action.hash;
       await args.denops.cmd(`Git reset --hard ${hash}`);
+      await args.denops.call("ddu#ui#ff#do_action", "quit");
       return Promise.resolve(ActionFlags.None);
     },
   };
