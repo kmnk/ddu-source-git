@@ -3,8 +3,8 @@ import {
   ActionFlags,
   BaseKind,
   DduItem,
-} from "https://deno.land/x/ddu_vim@v1.7.0/types.ts";
-import { Denops, fn } from "https://deno.land/x/ddu_vim@v1.7.0/deps.ts";
+} from "https://deno.land/x/ddu_vim@v1.8.1/types.ts";
+import { Denops, fn } from "https://deno.land/x/ddu_vim@v1.8.1/deps.ts";
 
 export type ActionData = {
   hash: string;
@@ -29,21 +29,21 @@ export class Kind extends BaseKind<Params> {
       const item = args.items[0];
       const action = item?.action as ActionData;
       const hash = action.hash;
-      await args.denops.cmd(`Git revert ${hash}`);
+      await execute(args.denops, `Git revert ${hash}`);
       return Promise.resolve(ActionFlags.None);
     },
     reset: async(args) => {
       const item = args.items[0];
       const action = item?.action as ActionData;
       const hash = action.hash;
-      await args.denops.cmd(`Git reset ${hash}`);
+      await execute(args.denops, `Git reset ${hash}`);
       return Promise.resolve(ActionFlags.None);
     },
     reset_hard: async(args) => {
       const item = args.items[0];
       const action = item?.action as ActionData;
       const hash = action.hash;
-      await args.denops.cmd(`Git reset --hard ${hash}`);
+      await execute(args.denops, `Git reset --hard ${hash}`);
       return Promise.resolve(ActionFlags.None);
     },
   };
