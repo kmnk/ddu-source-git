@@ -1,7 +1,7 @@
-import * as fn from "https://deno.land/x/denops_std@v3.1.0/function/mod.ts";
-import type { GatherArguments } from "https://deno.land/x/ddu_vim@v1.5.0/base/source.ts";
-import type { Item } from "https://deno.land/x/ddu_vim@v1.5.0/types.ts";
-import { BaseSource } from "https://deno.land/x/ddu_vim@v1.5.0/types.ts";
+import * as fn from "https://deno.land/x/denops_std@v3.3.2/function/mod.ts";
+import type { GatherArguments } from "https://deno.land/x/ddu_vim@v1.8.1/base/source.ts";
+import type { Item } from "https://deno.land/x/ddu_vim@v1.8.1/types.ts";
+import { BaseSource } from "https://deno.land/x/ddu_vim@v1.8.1/types.ts";
 import { ActionData } from "../@ddu-kinds/git-log.ts"
 
 type Params = Record<never, never>;
