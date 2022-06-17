@@ -23,6 +23,7 @@ export class Kind extends BaseKind<Params> {
         const hash = action.hash;
         yank(args.denops, hash);
       }
+      console.log('hogehoge');
       return Promise.resolve(ActionFlags.None);
     },
     revert: async(args) => {
@@ -30,6 +31,7 @@ export class Kind extends BaseKind<Params> {
       const action = item?.action as ActionData;
       const hash = action.hash;
       await execute(args.denops, `Git revert ${hash}`);
+      console.log('hogehoge');
       return Promise.resolve(ActionFlags.None);
     },
     reset: async(args) => {
@@ -37,6 +39,7 @@ export class Kind extends BaseKind<Params> {
       const action = item?.action as ActionData;
       const hash = action.hash;
       await execute(args.denops, `Git reset ${hash}`);
+      console.log('hogehoge');
       return Promise.resolve(ActionFlags.None);
     },
     reset_hard: async(args) => {
@@ -44,6 +47,7 @@ export class Kind extends BaseKind<Params> {
       const action = item?.action as ActionData;
       const hash = action.hash;
       await execute(args.denops, `Git reset --hard ${hash}`);
+      console.log('hogehoge');
       return Promise.resolve(ActionFlags.None);
     },
   };
