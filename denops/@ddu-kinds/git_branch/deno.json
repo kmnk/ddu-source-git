@@ -9,6 +9,7 @@
   },
   "imports": {
     "@denops/std": "jsr:@denops/std@~8.0.0",
-    "@shougo/ddu-vim": "jsr:@shougo/ddu-vim@~11.0.0"
+    "@shougo/ddu-vim": "jsr:@shougo/ddu-vim@~11.0.0",
+    "@shougo/ddu-kind-word": "jsr:@shougo/ddu-kind-word@~1.0.0"
   }
 }

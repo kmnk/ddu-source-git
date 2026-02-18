@@ -61,7 +61,7 @@ export class Source extends BaseSource<Params> {
             return [{
               word: branch,
               display: isCurrent ? `* ${branch}` : `  ${branch}`,
-              action: { branch, cwd, isCurrent },
+              action: { branch, cwd, isCurrent, text: branch },
             }];
           });
 
