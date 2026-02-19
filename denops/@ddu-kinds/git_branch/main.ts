@@ -28,7 +28,7 @@ async function runGit(
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {
-    ...WordActions,
+    yank: WordActions.yank,
 
     switch: {
       description: "Switch to the selected branch.",
@@ -48,6 +48,38 @@ export class Kind extends BaseKind<Params> {
             await args.denops.call(
               "ddu#util#print_error",
               `Failed to switch: ${err}`,
+            );
+            return ActionFlags.Persist;
+          }
+        }
+
+        return ActionFlags.None;
+      },
+    },
+
+    create: {
+      description:
+        "Create a new branch from the selected branch and switch to it.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+
+          const newName = await fn.input(
+            args.denops,
+            `New branch from "${action.branch}": `,
+          ) as string;
+          if (newName === "") {
+            return ActionFlags.Persist;
+          }
+
+          const { success, err } = await runGit(
+            ["switch", "-c", newName, action.branch],
+            action.cwd,
+          );
+          if (!success) {
+            await args.denops.call(
+              "ddu#util#print_error",
+              `Failed to create: ${err}`,
             );
             return ActionFlags.Persist;
           }
@@ -84,9 +116,9 @@ export class Kind extends BaseKind<Params> {
       },
     },
 
-    rebaseInteractive: {
+    deleteForce: {
       description:
-        "Interactively rebase the current branch onto the selected branch.",
+        "Force delete the selected branch with `git branch -D`. Requires confirmation.",
       callback: async (args) => {
         for (const item of args.items) {
           const action = item?.action as ActionData;
@@ -95,12 +127,30 @@ export class Kind extends BaseKind<Params> {
             continue;
           }
 
-          await args.denops.cmd(
-            `terminal git -C ${action.cwd} rebase -i ${action.branch}`,
+          const confirm = await fn.confirm(
+            args.denops,
+            `Force delete branch "${action.branch}"?`,
+            "&Yes\n&No",
+            2,
+          ) as number;
+          if (confirm !== 1) {
+            return ActionFlags.Persist;
+          }
+
+          const { success, err } = await runGit(
+            ["branch", "-D", action.branch],
+            action.cwd,
           );
+          if (!success) {
+            await args.denops.call(
+              "ddu#util#print_error",
+              `Failed to force delete: ${err}`,
+            );
+            return ActionFlags.Persist;
+          }
         }
 
-        return ActionFlags.None;
+        return ActionFlags.RefreshItems;
       },
     },
 
@@ -125,6 +175,26 @@ export class Kind extends BaseKind<Params> {
             );
             return ActionFlags.Persist;
           }
+        }
+
+        return ActionFlags.None;
+      },
+    },
+
+    rebaseInteractive: {
+      description:
+        "Interactively rebase the current branch onto the selected branch.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+
+          if (action.isCurrent) {
+            continue;
+          }
+
+          await args.denops.cmd(
+            `terminal git -C ${action.cwd} rebase -i ${action.branch}`,
+          );
         }
 
         return ActionFlags.None;
@@ -186,76 +256,6 @@ export class Kind extends BaseKind<Params> {
             await args.denops.call(
               "ddu#util#print_error",
               `Failed to copy: ${err}`,
-            );
-            return ActionFlags.Persist;
-          }
-        }
-
-        return ActionFlags.RefreshItems;
-      },
-    },
-
-    create: {
-      description:
-        "Create a new branch from the selected branch and switch to it.",
-      callback: async (args) => {
-        for (const item of args.items) {
-          const action = item?.action as ActionData;
-
-          const newName = await fn.input(
-            args.denops,
-            `New branch from "${action.branch}": `,
-          ) as string;
-          if (newName === "") {
-            return ActionFlags.Persist;
-          }
-
-          const { success, err } = await runGit(
-            ["switch", "-c", newName, action.branch],
-            action.cwd,
-          );
-          if (!success) {
-            await args.denops.call(
-              "ddu#util#print_error",
-              `Failed to create: ${err}`,
-            );
-            return ActionFlags.Persist;
-          }
-        }
-
-        return ActionFlags.None;
-      },
-    },
-
-    deleteForce: {
-      description:
-        "Force delete the selected branch with `git branch -D`. Requires confirmation.",
-      callback: async (args) => {
-        for (const item of args.items) {
-          const action = item?.action as ActionData;
-
-          if (action.isCurrent) {
-            continue;
-          }
-
-          const confirm = await fn.confirm(
-            args.denops,
-            `Force delete branch "${action.branch}"?`,
-            "&Yes\n&No",
-            2,
-          ) as number;
-          if (confirm !== 1) {
-            return ActionFlags.Persist;
-          }
-
-          const { success, err } = await runGit(
-            ["branch", "-D", action.branch],
-            action.cwd,
-          );
-          if (!success) {
-            await args.denops.call(
-              "ddu#util#print_error",
-              `Failed to force delete: ${err}`,
             );
             return ActionFlags.Persist;
           }
