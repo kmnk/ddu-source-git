@@ -248,7 +248,9 @@ export class Kind extends BaseKind<Params> {
           { once: true },
         );
         await args.denops.cmd(
-          `autocmd BufWipeout <buffer> call denops#notify(${JSON.stringify(args.denops.name)}, ${JSON.stringify(callbackId)}, [])`,
+          `autocmd BufWipeout <buffer> call denops#notify(${
+            JSON.stringify(args.denops.name)
+          }, ${JSON.stringify(callbackId)}, [])`,
         );
 
         return ActionFlags.None;
@@ -307,7 +309,9 @@ export class Kind extends BaseKind<Params> {
           { once: true },
         );
         await args.denops.cmd(
-          `autocmd BufWipeout <buffer> call denops#notify(${JSON.stringify(args.denops.name)}, ${JSON.stringify(callbackId)}, [])`,
+          `autocmd BufWipeout <buffer> call denops#notify(${
+            JSON.stringify(args.denops.name)
+          }, ${JSON.stringify(callbackId)}, [])`,
         );
 
         return ActionFlags.None;
