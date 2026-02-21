@@ -1,4 +1,9 @@
-import type { Context, Item, ItemHighlight, SourceOptions } from "@shougo/ddu-vim/types";
+import type {
+  Context,
+  Item,
+  ItemHighlight,
+  SourceOptions,
+} from "@shougo/ddu-vim/types";
 import { BaseSource } from "@shougo/ddu-vim/source";
 
 import type { ActionData } from "@kmnk/ddu-kind-git_branch";
