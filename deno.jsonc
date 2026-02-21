@@ -12,6 +12,7 @@
     "upgrade": "deno outdated --recursive --update"
   },
   "workspace": [
+    "./denops/@ddu-git-utils",
     "./denops/@ddu-sources/git_branch",
     "./denops/@ddu-kinds/git_branch"
   ]

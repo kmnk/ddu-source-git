@@ -2,6 +2,7 @@ import { ActionFlags, type Actions } from "@shougo/ddu-vim/types";
 import { BaseKind } from "@shougo/ddu-vim/kind";
 import { WordActions } from "@shougo/ddu-kind-word";
 import * as fn from "@denops/std/function";
+import { echoErr, echoLog } from "@kmnk/ddu-git-utils";
 
 export type ActionData = {
   branch: string;
@@ -15,15 +16,20 @@ type Params = Record<string, never>;
 async function runGit(
   args: string[],
   cwd: string,
-): Promise<{ success: boolean; err: string }> {
+): Promise<{ success: boolean; out: string; err: string }> {
   const proc = new Deno.Command("git", {
     args,
     cwd,
     stdout: "piped",
     stderr: "piped",
   });
-  const { success, stderr } = await proc.output();
-  return { success, err: new TextDecoder().decode(stderr).trim() };
+  const { success, stdout, stderr } = await proc.output();
+  const decoder = new TextDecoder();
+  return {
+    success,
+    out: decoder.decode(stdout).trim(),
+    err: decoder.decode(stderr).trim(),
+  };
 }
 
 export class Kind extends BaseKind<Params> {
@@ -40,17 +46,16 @@ export class Kind extends BaseKind<Params> {
             continue;
           }
 
-          const { success, err } = await runGit(
+          const { success, out, err } = await runGit(
             ["switch", action.branch],
             action.cwd,
           );
+          await echoLog(args.denops, out);
           if (!success) {
-            await args.denops.call(
-              "ddu#util#print_error",
-              `Failed to switch: ${err}`,
-            );
-            return ActionFlags.Persist;
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
           }
+          await echoLog(args.denops, err);
         }
 
         return ActionFlags.None;
@@ -72,17 +77,16 @@ export class Kind extends BaseKind<Params> {
             return ActionFlags.Persist;
           }
 
-          const { success, err } = await runGit(
+          const { success, out, err } = await runGit(
             ["switch", "-c", newName, action.branch],
             action.cwd,
           );
+          await echoLog(args.denops, out);
           if (!success) {
-            await args.denops.call(
-              "ddu#util#print_error",
-              `Failed to create: ${err}`,
-            );
-            return ActionFlags.Persist;
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
           }
+          await echoLog(args.denops, err);
         }
 
         return ActionFlags.None;
@@ -99,17 +103,16 @@ export class Kind extends BaseKind<Params> {
             continue;
           }
 
-          const { success, err } = await runGit(
+          const { success, out, err } = await runGit(
             ["branch", "-d", action.branch],
             action.cwd,
           );
+          await echoLog(args.denops, out);
           if (!success) {
-            await args.denops.call(
-              "ddu#util#print_error",
-              `Failed to delete: ${err}`,
-            );
-            return ActionFlags.Persist;
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
           }
+          await echoLog(args.denops, err);
         }
 
         return ActionFlags.RefreshItems;
@@ -137,17 +140,16 @@ export class Kind extends BaseKind<Params> {
             return ActionFlags.Persist;
           }
 
-          const { success, err } = await runGit(
+          const { success, out, err } = await runGit(
             ["branch", "-D", action.branch],
             action.cwd,
           );
+          await echoLog(args.denops, out);
           if (!success) {
-            await args.denops.call(
-              "ddu#util#print_error",
-              `Failed to force delete: ${err}`,
-            );
-            return ActionFlags.Persist;
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
           }
+          await echoLog(args.denops, err);
         }
 
         return ActionFlags.RefreshItems;
@@ -164,17 +166,16 @@ export class Kind extends BaseKind<Params> {
             continue;
           }
 
-          const { success, err } = await runGit(
+          const { success, out, err } = await runGit(
             ["rebase", action.branch],
             action.cwd,
           );
+          await echoLog(args.denops, out);
           if (!success) {
-            await args.denops.call(
-              "ddu#util#print_error",
-              `Failed to rebase: ${err}`,
-            );
-            return ActionFlags.Persist;
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
           }
+          await echoLog(args.denops, err);
         }
 
         return ActionFlags.None;
@@ -216,17 +217,16 @@ export class Kind extends BaseKind<Params> {
             return ActionFlags.Persist;
           }
 
-          const { success, err } = await runGit(
+          const { success, out, err } = await runGit(
             ["branch", "-m", action.branch, newName],
             action.cwd,
           );
+          await echoLog(args.denops, out);
           if (!success) {
-            await args.denops.call(
-              "ddu#util#print_error",
-              `Failed to rename: ${err}`,
-            );
-            return ActionFlags.Persist;
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
           }
+          await echoLog(args.denops, err);
         }
 
         return ActionFlags.RefreshItems;
@@ -248,17 +248,16 @@ export class Kind extends BaseKind<Params> {
             return ActionFlags.Persist;
           }
 
-          const { success, err } = await runGit(
+          const { success, out, err } = await runGit(
             ["branch", "-c", action.branch, newName],
             action.cwd,
           );
+          await echoLog(args.denops, out);
           if (!success) {
-            await args.denops.call(
-              "ddu#util#print_error",
-              `Failed to copy: ${err}`,
-            );
-            return ActionFlags.Persist;
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
           }
+          await echoLog(args.denops, err);
         }
 
         return ActionFlags.RefreshItems;
