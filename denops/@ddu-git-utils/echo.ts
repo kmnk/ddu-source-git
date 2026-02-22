@@ -1,5 +1,9 @@
 import type { Denops } from "@denops/std";
 
+function escape(line: string): string {
+  return line.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
 export async function echoLog(
   denops: Denops,
   message: string,
@@ -7,21 +11,25 @@ export async function echoLog(
   const lines = message.split("\n").filter((l) => l !== "");
   if (lines.length === 0) return;
   await denops.cmd("redraw");
-  const escaped = lines
-    .map((l) => l.replace(/\\/g, "\\\\").replace(/"/g, '\\"'))
-    .join("\\n");
-  await denops.cmd(`echo "${escaped}"`);
+  for (const line of lines) {
+    await denops.cmd(`echomsg "${escape(line)}"`);
+  }
 }
 
 export async function echoErr(
   denops: Denops,
   message: string,
 ): Promise<void> {
-  const lines = message.split("\n").filter((l) => l !== "");
+  // Filter out hint lines to avoid "Press ENTER" prompt from long output.
+  // Full output including hints remains visible via :messages.
+  const lines = message
+    .split("\n")
+    .filter((l) => l !== "" && !l.startsWith("hint:"));
   if (lines.length === 0) return;
   await denops.cmd("redraw");
-  const escaped = lines
-    .map((l) => l.replace(/\\/g, "\\\\").replace(/"/g, '\\"'))
-    .join("\\n");
-  await denops.cmd(`echohl ErrorMsg | echo "${escaped}" | echohl None`);
+  await denops.cmd("echohl ErrorMsg");
+  for (const line of lines) {
+    await denops.cmd(`echomsg "${escape(line)}"`);
+  }
+  await denops.cmd("echohl None");
 }
