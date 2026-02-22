@@ -397,6 +397,39 @@ export class Kind extends BaseKind<Params> {
         return ActionFlags.None;
       },
     },
+
+    addWorktree: {
+      description:
+        "Create a new worktree for the selected branch (`git worktree add <path> <branch>`).",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+
+          const path = await fn.input(
+            args.denops,
+            `Worktree path for "${action.branch}": `,
+          ) as string;
+          if (path === "") {
+            return ActionFlags.Persist;
+          }
+
+          const { success, out, err } = await runGit(
+            ["worktree", "add", path, action.branch],
+            action.cwd,
+          );
+          if (!success) {
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
+          }
+          await echoLog(
+            args.denops,
+            [out, err].filter((s) => s !== "").join("\n"),
+          );
+        }
+
+        return ActionFlags.None;
+      },
+    },
   };
 
   override params(): Params {
