@@ -35,7 +35,7 @@ export class Source extends BaseSource<Params> {
 
         const cmdArgs = [
           "branch",
-          "--format=%(HEAD)%(refname:short)\t%(refname)\t%(symref)\t%(worktreepath)",
+          "--format=%(HEAD)\t%(refname:short)\t%(refname)\t%(symref)\t%(worktreepath)",
           ...args.sourceParams.args,
         ];
 
@@ -71,19 +71,19 @@ export class Source extends BaseSource<Params> {
         const items: Item<ActionData>[] = lines
           .filter((line) => line !== "")
           .flatMap((line) => {
-            const [refLine, refname, symref, worktreePath] = line.split("\t");
+            // %(HEAD) is now a separate field to avoid ambiguity
+            const [head, branch, refname, symref, worktreePath] = line.split(
+              "\t",
+            );
+            if (!branch) return [];
             if (symref) return [];
-            // %(HEAD): '*' for current, '+' for linked-worktree (git 2.41+), ' ' otherwise
-            const match = refLine.match(/^([* +])(.+)$/);
-            if (!match) return [];
-            const head = match[1];
+            // %(HEAD): '*' current, '+' linked-worktree (git 2.41+), ' ' otherwise
             const isCurrent = head === "*";
-            const branch = match[2];
             const isRemote = refname?.startsWith("refs/remotes/") ?? false;
             // git 2.41+: %(HEAD)='+' for linked-worktree branches
             // older git: use %(worktreepath) non-empty (excluding current branch)
             const isWorktree = head === "+" ||
-              (!isCurrent && worktreePath !== "");
+              (!isCurrent && (worktreePath ?? "") !== "");
             const display = isCurrent
               ? `* ${branch}`
               : isWorktree
