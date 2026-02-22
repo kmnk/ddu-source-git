@@ -1,0 +1,17 @@
+{
+  "name": "@kmnk/ddu-kind-git_log",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./main.ts"
+  },
+  "publish": {
+    "include": ["**/*.ts"]
+  },
+  "imports": {
+    "@denops/std": "jsr:@denops/std@~8.0.0",
+    "@kmnk/ddu-git-utils/echo": "../../@ddu-git-utils/echo.ts",
+    "@kmnk/ddu-git-utils/git": "../../@ddu-git-utils/git.ts",
+    "@shougo/ddu-vim": "jsr:@shougo/ddu-vim@~11.0.0",
+    "@shougo/ddu-kind-word": "jsr:@shougo/ddu-kind-word@~1.0.0"
+  }
+}
