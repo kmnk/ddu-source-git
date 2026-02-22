@@ -1,6 +1,6 @@
+import type { Denops } from "@denops/std";
 import { ActionFlags, type Actions } from "@shougo/ddu-vim/types";
 import { BaseKind } from "@shougo/ddu-vim/kind";
-import { WordActions } from "@shougo/ddu-kind-word";
 import * as fn from "@denops/std/function";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { runGit } from "@kmnk/ddu-git-utils/git";
@@ -12,11 +12,32 @@ export type ActionData = {
   text: string;
 };
 
-type Params = Record<string, never>;
+type Params = {
+  remote: string;
+};
+
+async function openNofileBuffer(
+  denops: Denops,
+  lines: string[],
+): Promise<void> {
+  await denops.cmd("new");
+  await denops.cmd("setlocal buftype=nofile bufhidden=wipe noswapfile");
+  await fn.setline(denops, 1, lines);
+}
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {
-    yank: WordActions.yank,
+    yank: {
+      description: "Yank the branch name.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          await fn.setreg(args.denops, '"', action.text);
+          await fn.setreg(args.denops, "*", action.text);
+        }
+        return ActionFlags.None;
+      },
+    },
 
     switch: {
       description: "Switch to the selected branch.",
@@ -250,9 +271,137 @@ export class Kind extends BaseKind<Params> {
         return ActionFlags.RefreshItems;
       },
     },
+
+    merge: {
+      description:
+        "Merge the selected branch into the current branch (`git merge <branch>`). Requires confirmation.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+
+          if (action.isCurrent) continue;
+
+          const confirm = await fn.confirm(
+            args.denops,
+            `Merge "${action.branch}" into current branch?`,
+            "&Yes\n&No",
+            2,
+          ) as number;
+          if (confirm !== 1) {
+            return ActionFlags.Persist;
+          }
+
+          const { success, out, err } = await runGit(
+            ["merge", action.branch],
+            action.cwd,
+          );
+          if (!success) {
+            const combined = [out, err].filter((s) => s !== "").join("\n");
+            await openNofileBuffer(args.denops, combined.split("\n"));
+            return ActionFlags.None;
+          }
+          await echoLog(
+            args.denops,
+            [out, err].filter((s) => s !== "").join("\n"),
+          );
+        }
+
+        return ActionFlags.None;
+      },
+    },
+
+    push: {
+      description:
+        "Push the selected branch to remote (`git push <remote> <branch>`).",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          const remote = args.kindParams.remote;
+
+          const { success, out, err } = await runGit(
+            ["push", remote, action.branch],
+            action.cwd,
+          );
+          if (!success) {
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
+          }
+          await echoLog(
+            args.denops,
+            [out, err].filter((s) => s !== "").join("\n"),
+          );
+        }
+
+        return ActionFlags.None;
+      },
+    },
+
+    pushForce: {
+      description:
+        "Force-push the selected branch with `--force-with-lease`. Requires confirmation.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          const remote = args.kindParams.remote;
+
+          const confirm = await fn.confirm(
+            args.denops,
+            `Force-push "${action.branch}" to "${remote}"?`,
+            "&Yes\n&No",
+            2,
+          ) as number;
+          if (confirm !== 1) {
+            return ActionFlags.Persist;
+          }
+
+          const { success, out, err } = await runGit(
+            ["push", "--force-with-lease", remote, action.branch],
+            action.cwd,
+          );
+          if (!success) {
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
+          }
+          await echoLog(
+            args.denops,
+            [out, err].filter((s) => s !== "").join("\n"),
+          );
+        }
+
+        return ActionFlags.None;
+      },
+    },
+
+    fetch: {
+      description:
+        "Fetch the selected branch from remote (`git fetch <remote> <branch>`).",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          const remote = args.kindParams.remote;
+
+          const { success, out, err } = await runGit(
+            ["fetch", remote, action.branch],
+            action.cwd,
+          );
+          if (!success) {
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
+          }
+          await echoLog(
+            args.denops,
+            [out, err].filter((s) => s !== "").join("\n"),
+          );
+        }
+
+        return ActionFlags.None;
+      },
+    },
   };
 
   override params(): Params {
-    return {};
+    return {
+      remote: "origin",
+    };
   }
 }

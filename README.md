@@ -8,7 +8,7 @@ ddu sources and kinds for Git operations
 
 | Name | Source | Kind | Description |
 |------|--------|------|-------------|
-| `git_branch` | `git_branch` | `git_branch` | Lists git branches. Actions: switch, create, delete, deleteForce, rebase, rebaseInteractive, move, copy, yank. |
+| `git_branch` | `git_branch` | `git_branch` | Lists git branches. Actions: switch, create, delete, deleteForce, rebase, rebaseInteractive, move, copy, merge, push, pushForce, fetch, yank. Kind params: `remote` (default: `"origin"`). |
 | `git_status` | `git_status` | `git_status` | Lists changed files from `git status`. Actions: diff, diffCached, add, restore, restoreStaged, commit, commitAmend, open, tabopen, delete, yank. |
 | `git_log` | `git_log` | `git_log` | Lists commits from `git log --graph`. Actions: reset, resetHard, createBranch, cherryPick, revert, tag, diff, files, yank. |
 | `git_log_files` | `git_log_files` | `git_log_files` | Lists files changed in a commit. Opened from `git_log` files action. Actions: open, tabopen, yank. |

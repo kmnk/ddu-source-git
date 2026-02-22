@@ -63,7 +63,7 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 ### Key interfaces
 
 - **Source** (`@ddu-sources/git_branch`): implements ddu.vim `BaseSource`. Calls `git branch` and maps output into `DduItem[]`.
-- **Kind** (`@ddu-kinds/git_branch`): implements ddu.vim `BaseKind`. Defines actions: `switch`, `create`, `delete`, `deleteForce`, `rebase`, `rebaseInteractive`, `move`, `copy`, `yank`.
+- **Kind** (`@ddu-kinds/git_branch`): implements ddu.vim `BaseKind`. Defines actions: `switch`, `create`, `delete`, `deleteForce`, `rebase`, `rebaseInteractive`, `move`, `copy`, `merge`, `push`, `pushForce`, `fetch`, `yank`. Params: `remote` (default: `"origin"`).
 - **Source** (`@ddu-sources/git_status`): implements ddu.vim `BaseSource`. Calls `git status --porcelain` and maps each line into `DduItem[]` with XY highlight.
 - **Kind** (`@ddu-kinds/git_status`): implements ddu.vim `BaseKind`. Defines actions: `diff`, `diffCached`, `add`, `restore`, `restoreStaged`, `commit`, `commitAmend`, `open`, `tabopen`, `delete`, `yank`.
 - **Source** (`@ddu-sources/git_log`): implements ddu.vim `BaseSource`. Calls `git log --graph` and maps each line into `DduItem[]` with graph/hash highlights.
