@@ -15,6 +15,7 @@ ddu sources and kinds for Git operations
 | `git_stash` | `git_stash` | `git_stash` | Lists stashes from `git stash list`. Actions: pop, apply, drop, branch, yank. Preview shows `git stash show -p`. |
 | `git_tag` | `git_tag` | `git_tag` | Lists tags from `git tag -l`. Actions: checkout, createBranch, delete, diff, yank. Preview shows `git show --no-patch`. |
 | `git_reflog` | `git_reflog` | `git_reflog` | Lists reflog entries from `git reflog`. Actions: reset, resetHard, createBranch, yank. Preview shows commit info. |
+| `git_config` | `git_config` | `git_config` | Lists config entries from `git config --list`. Actions: set, unset, edit, yank. Source params: `scopes` (filter by scope). |
 
 ## Requirements
 

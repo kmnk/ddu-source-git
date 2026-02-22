@@ -45,6 +45,8 @@ denops/
       main.ts
     git_reflog/           — Source: runs `git reflog`, returns reflog items
       main.ts
+    git_config/           — Source: runs `git config --list`, returns config entries
+      main.ts
   @ddu-kinds/
     git_branch/           — Kind: defines actions on branch items
       main.ts
@@ -59,6 +61,8 @@ denops/
     git_tag/              — Kind: defines actions on tag items (checkout, createBranch, delete, diff, yank)
       main.ts
     git_reflog/           — Kind: defines actions on reflog items (reset, resetHard, createBranch, yank)
+      main.ts
+    git_config/           — Kind: defines actions on config entries (set, unset, edit, yank)
       main.ts
 ```
 
@@ -80,6 +84,8 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Kind** (`@ddu-kinds/git_tag`): implements ddu.vim `BaseKind`. Defines actions: `checkout`, `createBranch`, `delete`, `diff`, `yank`. Provides a previewer via `git show --no-patch`.
 - **Source** (`@ddu-sources/git_reflog`): implements ddu.vim `BaseSource`. Calls `git reflog` and maps each entry into `DduItem[]` with hash/ref highlights.
 - **Kind** (`@ddu-kinds/git_reflog`): implements ddu.vim `BaseKind`. Defines actions: `reset`, `resetHard`, `createBranch`, `yank`. Provides a commit info previewer.
+- **Source** (`@ddu-sources/git_config`): implements ddu.vim `BaseSource`. Calls `git config --list --show-scope --show-origin` and maps each entry into `DduItem[]`. Supports `scopes` param to filter by scope.
+- **Kind** (`@ddu-kinds/git_config`): implements ddu.vim `BaseKind`. Defines actions: `set` (prompts scope+value), `unset` (with confirm), `edit` (opens config file), `yank`.
 - **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`.
 - **Utils** (`@ddu-git-utils/git.ts`): provides `runGit` to execute git commands via `Deno.Command`. Shared across all kinds.
 
