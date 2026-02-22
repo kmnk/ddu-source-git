@@ -35,7 +35,7 @@ export class Source extends BaseSource<Params> {
 
         const cmdArgs = [
           "branch",
-          "--format=%(HEAD)\t%(refname:short)\t%(refname)\t%(symref)\t%(worktreepath)",
+          "--format=%(HEAD)\t%(refname)\t%(symref)\t%(worktreepath)",
           ...args.sourceParams.args,
         ];
 
@@ -71,15 +71,20 @@ export class Source extends BaseSource<Params> {
         const items: Item<ActionData>[] = lines
           .filter((line) => line !== "")
           .flatMap((line) => {
-            // %(HEAD) is now a separate field to avoid ambiguity
-            const [head, branch, refname, symref, worktreePath] = line.split(
-              "\t",
-            );
-            if (!branch) return [];
+            // Use %(refname) instead of %(refname:short) to avoid ambiguity
+            // when a local branch name conflicts with a remote-tracking branch.
+            const [head, refname, symref, worktreePath] = line.split("\t");
+            if (!refname) return [];
             if (symref) return [];
-            // %(HEAD): '*' current, '+' linked-worktree (git 2.41+), ' ' otherwise
+            // %(HEAD): '*' current, '+' linked-worktree (git 2.41+), ' '/''/etc otherwise
             const isCurrent = head === "*";
-            const isRemote = refname?.startsWith("refs/remotes/") ?? false;
+            const isRemote = refname.startsWith("refs/remotes/");
+            // Strip standard ref prefixes for display
+            const branch = refname.startsWith("refs/heads/")
+              ? refname.slice("refs/heads/".length)
+              : refname.startsWith("refs/remotes/")
+              ? refname.slice("refs/remotes/".length)
+              : refname;
             // git 2.41+: %(HEAD)='+' for linked-worktree branches
             // older git: use %(worktreepath) non-empty (excluding current branch)
             const isWorktree = head === "+" ||
