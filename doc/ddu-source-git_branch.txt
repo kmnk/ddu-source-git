@@ -53,6 +53,17 @@ cwd		(string)
 		If empty, uses the current working directory from context.
 		Default: ""
 
+highlights	(object)
+		Highlight group names for branch display.
+
+		highlights.current  (string)
+			Highlight applied to the current branch line.
+			Default: "Statement"
+
+		highlights.remote   (string)
+			Highlight applied to remote branch names.
+			Default: "Comment"
+
 
 ==============================================================================
 KIND					*ddu-kind-git_branch*
@@ -63,9 +74,43 @@ git_branch
 					*ddu-kind-git_branch-actions*
 ACTIONS ~
 
+yank
+		Yank the branch name to the unnamed register.
+
 switch
 		Switch to the selected branch using `git switch`.
 		Skips if the selected branch is already the current branch.
+
+create
+		Prompt for a new branch name, then create it from the
+		selected branch and switch to it (`git switch -c`).
+
+delete
+		Delete the selected branch with `git branch -d`.
+		Skips the current branch. Refreshes the ddu list on success.
+
+deleteForce
+		Force delete the selected branch with `git branch -D` after
+		confirmation. Skips the current branch.
+		Refreshes the ddu list on success.
+
+rebase
+		Rebase the current branch onto the selected branch using
+		`git rebase`. Skips if the selected branch is the current
+		branch.
+
+rebaseInteractive
+		Start an interactive rebase of the current branch onto the
+		selected branch (`git rebase -i`) in a `:terminal` buffer.
+		Skips if the selected branch is the current branch.
+
+move
+		Prompt for a new name and rename the selected branch with
+		`git branch -m`. Refreshes the ddu list on success.
+
+copy
+		Prompt for a new name and copy the selected branch with
+		`git branch -c`. Refreshes the ddu list on success.
 
 
 ==============================================================================

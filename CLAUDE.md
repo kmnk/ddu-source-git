@@ -28,7 +28,8 @@ The repository is designed to grow: `git_branch` is the first implementation, an
 ```
 denops/
   @ddu-git-utils/
-    echo.ts               — shared utilities (echoLog / echoErr), reused by all sources/kinds
+    echo.ts               — Vim output utilities (echoLog / echoErr)
+    git.ts                — git command runner (runGit), shared across kinds
   @ddu-sources/
     git_branch/           — Source: runs `git branch`, returns branch items
       main.ts
@@ -46,10 +47,11 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 ### Key interfaces
 
 - **Source** (`@ddu-sources/git_branch`): implements ddu.vim `BaseSource`. Calls `git branch` and maps output into `DduItem[]`.
-- **Kind** (`@ddu-kinds/git_branch`): implements ddu.vim `BaseKind`. Defines actions: `switch`, `delete`, `rebase`, `move`, `copy`, `create`, `yank`.
+- **Kind** (`@ddu-kinds/git_branch`): implements ddu.vim `BaseKind`. Defines actions: `switch`, `create`, `delete`, `deleteForce`, `rebase`, `rebaseInteractive`, `move`, `copy`, `yank`.
 - **Source** (`@ddu-sources/git_status`): implements ddu.vim `BaseSource`. Calls `git status --porcelain` and maps each line into `DduItem[]` with XY highlight.
-- **Kind** (`@ddu-kinds/git_status`): implements ddu.vim `BaseKind`. Defines actions: `add`, `restore`, `restoreStaged`, `commit`, `open`, `tabopen`, `delete`, `yank`.
-- **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`. Shared across all sources and kinds.
+- **Kind** (`@ddu-kinds/git_status`): implements ddu.vim `BaseKind`. Defines actions: `diff`, `diffCached`, `add`, `restore`, `restoreStaged`, `commit`, `commitAmend`, `open`, `tabopen`, `delete`, `yank`.
+- **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`.
+- **Utils** (`@ddu-git-utils/git.ts`): provides `runGit` to execute git commands via `Deno.Command`. Shared across all kinds.
 
 ## Development Commands
 
@@ -73,7 +75,8 @@ Run tasks with: `deno task <name>`
 - All source code is TypeScript targeting the **Deno runtime** (no Node.js).
 - Follow **denops.vim** patterns: use the `Dispatcher` interface, `denops.cmd()`, `denops.eval()`.
 - Follow **ddu.vim** source/kind interfaces from `@shougo/ddu-vim`.
-- Use `echoLog` / `echoErr` from `denops/@ddu-git-utils/echo.ts` for all user-visible messages.
+- Use `echoLog` / `echoErr` from `@kmnk/ddu-git-utils/echo` for all user-visible messages.
+- Use `runGit` from `@kmnk/ddu-git-utils/git` to execute git commands.
 - Workspace is defined in `deno.jsonc` — each package under `denops/` has its own `deno.json`.
 
 ## CI

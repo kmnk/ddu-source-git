@@ -1,9 +1,11 @@
+import type { Denops } from "@denops/std";
 import { ActionFlags, type Actions } from "@shougo/ddu-vim/types";
 import { BaseKind } from "@shougo/ddu-vim/kind";
 import { WordActions } from "@shougo/ddu-kind-word";
 import * as fn from "@denops/std/function";
 import { register } from "@denops/std/lambda";
-import { echoErr, echoLog } from "@kmnk/ddu-git-utils";
+import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
+import { runGit } from "@kmnk/ddu-git-utils/git";
 
 export type ActionData = {
   text: string; // text to yank (file path)
@@ -14,23 +16,74 @@ export type ActionData = {
 
 type Params = Record<string, never>;
 
-async function runGit(
-  args: string[],
-  cwd: string,
-): Promise<{ success: boolean; out: string; err: string }> {
-  const proc = new Deno.Command("git", {
-    args,
-    cwd,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { success, stdout, stderr } = await proc.output();
-  const decoder = new TextDecoder();
-  return {
-    success,
-    out: decoder.decode(stdout).trim(),
-    err: decoder.decode(stderr).trim(),
-  };
+async function openCommitBuffer(
+  denops: Denops,
+  action: ActionData,
+  amend: boolean,
+): Promise<ActionFlags> {
+  const { success: gitDirSuccess, out: gitDirOut } = await runGit(
+    ["rev-parse", "--git-dir"],
+    action.cwd,
+  );
+  if (!gitDirSuccess) return ActionFlags.None;
+
+  const gitDir = gitDirOut.startsWith("/")
+    ? gitDirOut
+    : `${action.cwd}/${gitDirOut}`;
+  const commitMsgFile = `${gitDir}/COMMIT_EDITMSG`;
+
+  const prefix = amend
+    ? (await runGit(["log", "-1", "--format=%B"], action.cwd)).out + "\n"
+    : "\n";
+  const { out: statusOut } = await runGit(["status"], action.cwd);
+  const statusLines = statusOut.split("\n").map((l) => `# ${l}`).join("\n");
+  const template =
+    `${prefix}# Please enter the commit message for your changes. Lines starting\n# with '#' will be stripped.\n#\n${statusLines}\n`;
+  await Deno.writeTextFile(commitMsgFile, template);
+
+  const escaped = await fn.fnameescape(denops, commitMsgFile);
+  await denops.cmd(`new ${escaped}`);
+  await denops.cmd("setlocal filetype=gitcommit bufhidden=wipe");
+
+  const commitArgs = amend
+    ? ["commit", "--amend", "--file", commitMsgFile, "--cleanup=strip"]
+    : ["commit", "--file", commitMsgFile, "--cleanup=strip"];
+  const callbackId = await register(
+    denops,
+    async () => {
+      const { success, out, err } = await runGit(commitArgs, action.cwd);
+      await echoLog(denops, out);
+      if (!success) {
+        await echoErr(denops, err);
+      }
+    },
+    { once: true },
+  );
+  await denops.cmd(
+    `autocmd BufWipeout <buffer> call denops#notify(${
+      JSON.stringify(denops.name)
+    }, ${JSON.stringify(callbackId)}, [])`,
+  );
+
+  return ActionFlags.None;
+}
+
+async function openDiffBuffer(
+  denops: Denops,
+  action: ActionData,
+  cached: boolean,
+): Promise<void> {
+  const baseArgs = cached
+    ? ["--no-pager", "diff", "--cached"]
+    : ["--no-pager", "diff"];
+  const gitArgs = action.path === "" ? baseArgs : [...baseArgs, action.path];
+  const { out } = await runGit(gitArgs, action.cwd);
+
+  await denops.cmd("new");
+  await denops.cmd(
+    "setlocal buftype=nofile bufhidden=wipe noswapfile filetype=diff",
+  );
+  await fn.setline(denops, 1, out.split("\n"));
 }
 
 export class Kind extends BaseKind<Params> {
@@ -41,19 +94,7 @@ export class Kind extends BaseKind<Params> {
       description: "Show git diff for the file.",
       callback: async (args) => {
         for (const item of args.items) {
-          const action = item?.action as ActionData;
-
-          const gitArgs = action.path === ""
-            ? ["--no-pager", "diff"]
-            : ["--no-pager", "diff", action.path];
-          const { out } = await runGit(gitArgs, action.cwd);
-
-          await args.denops.cmd("new");
-          await args.denops.cmd(
-            "setlocal buftype=nofile bufhidden=wipe noswapfile filetype=diff",
-          );
-          const lines = out.split("\n");
-          await fn.setline(args.denops, 1, lines);
+          await openDiffBuffer(args.denops, item?.action as ActionData, false);
         }
         return ActionFlags.None;
       },
@@ -63,19 +104,7 @@ export class Kind extends BaseKind<Params> {
       description: "Show git diff --cached for the file.",
       callback: async (args) => {
         for (const item of args.items) {
-          const action = item?.action as ActionData;
-
-          const gitArgs = action.path === ""
-            ? ["--no-pager", "diff", "--cached"]
-            : ["--no-pager", "diff", "--cached", action.path];
-          const { out } = await runGit(gitArgs, action.cwd);
-
-          await args.denops.cmd("new");
-          await args.denops.cmd(
-            "setlocal buftype=nofile bufhidden=wipe noswapfile filetype=diff",
-          );
-          const lines = out.split("\n");
-          await fn.setline(args.denops, 1, lines);
+          await openDiffBuffer(args.denops, item?.action as ActionData, true);
         }
         return ActionFlags.None;
       },
@@ -205,55 +234,7 @@ export class Kind extends BaseKind<Params> {
       callback: async (args) => {
         const action = args.items[0]?.action as ActionData;
         if (!action) return ActionFlags.None;
-
-        // Get git directory
-        const { success: gitDirSuccess, out: gitDirOut } = await runGit(
-          ["rev-parse", "--git-dir"],
-          action.cwd,
-        );
-        if (!gitDirSuccess) return ActionFlags.None;
-
-        const gitDir = gitDirOut.startsWith("/")
-          ? gitDirOut
-          : `${action.cwd}/${gitDirOut}`;
-        const commitMsgFile = `${gitDir}/COMMIT_EDITMSG`;
-
-        // Get current status for template comments
-        const { out: statusOut } = await runGit(["status"], action.cwd);
-        const statusLines = statusOut.split("\n").map((l) => `# ${l}`).join(
-          "\n",
-        );
-        const template =
-          `\n# Please enter the commit message for your changes. Lines starting\n# with '#' will be stripped.\n#\n${statusLines}\n`;
-        await Deno.writeTextFile(commitMsgFile, template);
-
-        // Open the file in a new split
-        const escaped = await fn.fnameescape(args.denops, commitMsgFile);
-        await args.denops.cmd(`new ${escaped}`);
-        await args.denops.cmd("setlocal filetype=gitcommit bufhidden=wipe");
-
-        // Run git commit when the buffer is closed
-        const callbackId = await register(
-          args.denops,
-          async () => {
-            const { success, out, err } = await runGit(
-              ["commit", "--file", commitMsgFile, "--cleanup=strip"],
-              action.cwd,
-            );
-            await echoLog(args.denops, out);
-            if (!success) {
-              await echoErr(args.denops, err);
-            }
-          },
-          { once: true },
-        );
-        await args.denops.cmd(
-          `autocmd BufWipeout <buffer> call denops#notify(${
-            JSON.stringify(args.denops.name)
-          }, ${JSON.stringify(callbackId)}, [])`,
-        );
-
-        return ActionFlags.None;
+        return await openCommitBuffer(args.denops, action, false);
       },
     },
 
@@ -262,59 +243,7 @@ export class Kind extends BaseKind<Params> {
       callback: async (args) => {
         const action = args.items[0]?.action as ActionData;
         if (!action) return ActionFlags.None;
-
-        // Get git directory
-        const { success: gitDirSuccess, out: gitDirOut } = await runGit(
-          ["rev-parse", "--git-dir"],
-          action.cwd,
-        );
-        if (!gitDirSuccess) return ActionFlags.None;
-
-        const gitDir = gitDirOut.startsWith("/")
-          ? gitDirOut
-          : `${action.cwd}/${gitDirOut}`;
-        const commitMsgFile = `${gitDir}/COMMIT_EDITMSG`;
-
-        // Pre-populate with the last commit message
-        const { out: lastMsg } = await runGit(
-          ["log", "-1", "--format=%B"],
-          action.cwd,
-        );
-        const { out: statusOut } = await runGit(["status"], action.cwd);
-        const statusLines = statusOut.split("\n").map((l) => `# ${l}`).join(
-          "\n",
-        );
-        const template =
-          `${lastMsg}\n# Please enter the commit message for your changes. Lines starting\n# with '#' will be stripped.\n#\n${statusLines}\n`;
-        await Deno.writeTextFile(commitMsgFile, template);
-
-        // Open the file in a new split
-        const escaped = await fn.fnameescape(args.denops, commitMsgFile);
-        await args.denops.cmd(`new ${escaped}`);
-        await args.denops.cmd("setlocal filetype=gitcommit bufhidden=wipe");
-
-        // Run git commit --amend when the buffer is closed
-        const callbackId = await register(
-          args.denops,
-          async () => {
-            const { success, out, err } = await runGit(
-              ["commit", "--amend", "--file", commitMsgFile, "--cleanup=strip"],
-              action.cwd,
-            );
-            await echoLog(args.denops, out);
-            if (!success) {
-              await echoErr(args.denops, err);
-            }
-          },
-          { once: true },
-        );
-        await args.denops.cmd(
-          `autocmd BufWipeout <buffer> call denops#notify(${
-            JSON.stringify(args.denops.name)
-          }, ${JSON.stringify(callbackId)}, [])`,
-        );
-
-        return ActionFlags.None;
+        return await openCommitBuffer(args.denops, action, true);
       },
     },
   };

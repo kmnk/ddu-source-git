@@ -98,6 +98,16 @@ yank
 		Yank the relative file path (`item.word`) to the unnamed
 		register.
 
+diff
+		Show `git diff` output for the file in a new scratch buffer
+		with `filetype=diff`. If the header item (no file) is
+		selected, shows diff for all files.
+
+diffCached
+		Show `git diff --cached` output for the file in a new scratch
+		buffer with `filetype=diff`. If the header item is selected,
+		shows diff for all staged files.
+
 open
 		Open the file in the current window with `:edit`.
 
@@ -110,6 +120,8 @@ delete
 
 add
 		Stage the file with `git add <path>`.
+		If the header item (no file) is selected, stages all changes
+		in the worktree (`git add <cwd>`).
 		Refreshes the ddu list on success.
 
 restore
@@ -118,13 +130,22 @@ restore
 
 restoreStaged
 		Unstage the file with `git restore --staged <path>`.
+		If the header item (no file) is selected, unstages all
+		changes (`git restore --staged <cwd>`).
 		Refreshes the ddu list on success.
 
 commit
 		Open `.git/COMMIT_EDITMSG` in a new split for editing.
 		The file is pre-populated with `git status` output as
-		comments. Closing the buffer (`:wq` or `:bdelete`) runs
+		comments. Closing the buffer runs
 		`git commit --file=COMMIT_EDITMSG --cleanup=strip`.
+		Note: only the first selected item's `cwd` is used.
+
+commitAmend
+		Open `.git/COMMIT_EDITMSG` in a new split for editing,
+		pre-populated with the last commit message followed by
+		`git status` output as comments. Closing the buffer runs
+		`git commit --amend --file=COMMIT_EDITMSG --cleanup=strip`.
 		Note: only the first selected item's `cwd` is used.
 
 
