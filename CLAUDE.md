@@ -35,10 +35,18 @@ denops/
       main.ts
     git_status/           — Source: runs `git status --porcelain`, returns changed file items
       main.ts
+    git_log/              — Source: runs `git log --graph`, returns commit items
+      main.ts
+    git_log_files/        — Source: runs `git show --name-status`, returns changed file items for a commit
+      main.ts
   @ddu-kinds/
     git_branch/           — Kind: defines actions on branch items
       main.ts
     git_status/           — Kind: defines actions on changed file items
+      main.ts
+    git_log/              — Kind: defines actions on commit items
+      main.ts
+    git_log_files/        — Kind: defines actions on commit-file items
       main.ts
 ```
 
@@ -50,6 +58,10 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Kind** (`@ddu-kinds/git_branch`): implements ddu.vim `BaseKind`. Defines actions: `switch`, `create`, `delete`, `deleteForce`, `rebase`, `rebaseInteractive`, `move`, `copy`, `yank`.
 - **Source** (`@ddu-sources/git_status`): implements ddu.vim `BaseSource`. Calls `git status --porcelain` and maps each line into `DduItem[]` with XY highlight.
 - **Kind** (`@ddu-kinds/git_status`): implements ddu.vim `BaseKind`. Defines actions: `diff`, `diffCached`, `add`, `restore`, `restoreStaged`, `commit`, `commitAmend`, `open`, `tabopen`, `delete`, `yank`.
+- **Source** (`@ddu-sources/git_log`): implements ddu.vim `BaseSource`. Calls `git log --graph` and maps each line into `DduItem[]` with graph/hash highlights.
+- **Kind** (`@ddu-kinds/git_log`): implements ddu.vim `BaseKind`. Defines actions: `reset`, `resetHard`, `createBranch`, `diff`, `files`, `yank`. Provides a commit summary previewer.
+- **Source** (`@ddu-sources/git_log_files`): implements ddu.vim `BaseSource`. Calls `git show --name-status` for a given hash and maps each changed file into `DduItem[]`.
+- **Kind** (`@ddu-kinds/git_log_files`): implements ddu.vim `BaseKind`. Defines actions: `open`, `tabopen`, `yank`.
 - **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`.
 - **Utils** (`@ddu-git-utils/git.ts`): provides `runGit` to execute git commands via `Deno.Command`. Shared across all kinds.
 
