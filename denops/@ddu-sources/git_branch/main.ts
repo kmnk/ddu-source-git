@@ -73,15 +73,17 @@ export class Source extends BaseSource<Params> {
           .flatMap((line) => {
             const [refLine, refname, symref, worktreePath] = line.split("\t");
             if (symref) return [];
-            // %(HEAD) is * for current branch, space for others
-            const match = refLine.match(/^([* ])(.+)$/);
+            // %(HEAD): '*' for current, '+' for linked-worktree (git 2.41+), ' ' otherwise
+            const match = refLine.match(/^([* +])(.+)$/);
             if (!match) return [];
-            const isCurrent = match[1] === "*";
+            const head = match[1];
+            const isCurrent = head === "*";
             const branch = match[2];
             const isRemote = refname?.startsWith("refs/remotes/") ?? false;
-            // %(worktreepath) is non-empty when checked out in any worktree;
-            // exclude the current branch (main worktree) to get linked worktree only
-            const isWorktree = !isCurrent && worktreePath !== "";
+            // git 2.41+: %(HEAD)='+' for linked-worktree branches
+            // older git: use %(worktreepath) non-empty (excluding current branch)
+            const isWorktree = head === "+" ||
+              (!isCurrent && worktreePath !== "");
             const display = isCurrent
               ? `* ${branch}`
               : isWorktree
