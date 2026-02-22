@@ -35,7 +35,7 @@ export class Source extends BaseSource<Params> {
 
         const cmdArgs = [
           "branch",
-          "--format=%(HEAD)%(refname:short)\t%(refname)\t%(symref)",
+          "--format=%(HEAD)%(refname:short)\t%(refname)\t%(symref)\t%(worktreepath)",
           ...args.sourceParams.args,
         ];
 
@@ -71,16 +71,17 @@ export class Source extends BaseSource<Params> {
         const items: Item<ActionData>[] = lines
           .filter((line) => line !== "")
           .flatMap((line) => {
-            const [refLine, refname, symref] = line.split("\t");
+            const [refLine, refname, symref, worktreePath] = line.split("\t");
             if (symref) return [];
-            // %(HEAD) is *, +, or space; %(refname:short) follows immediately
-            const match = refLine.match(/^([* +])(.+)$/);
+            // %(HEAD) is * for current branch, space for others
+            const match = refLine.match(/^([* ])(.+)$/);
             if (!match) return [];
-            const head = match[1];
-            const isCurrent = head === "*";
-            const isWorktree = head === "+";
+            const isCurrent = match[1] === "*";
             const branch = match[2];
             const isRemote = refname?.startsWith("refs/remotes/") ?? false;
+            // %(worktreepath) is non-empty when checked out in any worktree;
+            // exclude the current branch (main worktree) to get linked worktree only
+            const isWorktree = !isCurrent && worktreePath !== "";
             const display = isCurrent
               ? `* ${branch}`
               : isWorktree
