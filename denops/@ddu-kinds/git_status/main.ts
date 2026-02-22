@@ -16,6 +16,58 @@ export type ActionData = {
 
 type Params = Record<string, never>;
 
+async function openCommitBuffer(
+  denops: Denops,
+  action: ActionData,
+  amend: boolean,
+): Promise<ActionFlags> {
+  const { success: gitDirSuccess, out: gitDirOut } = await runGit(
+    ["rev-parse", "--git-dir"],
+    action.cwd,
+  );
+  if (!gitDirSuccess) return ActionFlags.None;
+
+  const gitDir = gitDirOut.startsWith("/")
+    ? gitDirOut
+    : `${action.cwd}/${gitDirOut}`;
+  const commitMsgFile = `${gitDir}/COMMIT_EDITMSG`;
+
+  const prefix = amend
+    ? (await runGit(["log", "-1", "--format=%B"], action.cwd)).out + "\n"
+    : "\n";
+  const { out: statusOut } = await runGit(["status"], action.cwd);
+  const statusLines = statusOut.split("\n").map((l) => `# ${l}`).join("\n");
+  const template =
+    `${prefix}# Please enter the commit message for your changes. Lines starting\n# with '#' will be stripped.\n#\n${statusLines}\n`;
+  await Deno.writeTextFile(commitMsgFile, template);
+
+  const escaped = await fn.fnameescape(denops, commitMsgFile);
+  await denops.cmd(`new ${escaped}`);
+  await denops.cmd("setlocal filetype=gitcommit bufhidden=wipe");
+
+  const commitArgs = amend
+    ? ["commit", "--amend", "--file", commitMsgFile, "--cleanup=strip"]
+    : ["commit", "--file", commitMsgFile, "--cleanup=strip"];
+  const callbackId = await register(
+    denops,
+    async () => {
+      const { success, out, err } = await runGit(commitArgs, action.cwd);
+      await echoLog(denops, out);
+      if (!success) {
+        await echoErr(denops, err);
+      }
+    },
+    { once: true },
+  );
+  await denops.cmd(
+    `autocmd BufWipeout <buffer> call denops#notify(${
+      JSON.stringify(denops.name)
+    }, ${JSON.stringify(callbackId)}, [])`,
+  );
+
+  return ActionFlags.None;
+}
+
 async function openDiffBuffer(
   denops: Denops,
   action: ActionData,
@@ -184,55 +236,7 @@ export class Kind extends BaseKind<Params> {
       callback: async (args) => {
         const action = args.items[0]?.action as ActionData;
         if (!action) return ActionFlags.None;
-
-        // Get git directory
-        const { success: gitDirSuccess, out: gitDirOut } = await runGit(
-          ["rev-parse", "--git-dir"],
-          action.cwd,
-        );
-        if (!gitDirSuccess) return ActionFlags.None;
-
-        const gitDir = gitDirOut.startsWith("/")
-          ? gitDirOut
-          : `${action.cwd}/${gitDirOut}`;
-        const commitMsgFile = `${gitDir}/COMMIT_EDITMSG`;
-
-        // Get current status for template comments
-        const { out: statusOut } = await runGit(["status"], action.cwd);
-        const statusLines = statusOut.split("\n").map((l) => `# ${l}`).join(
-          "\n",
-        );
-        const template =
-          `\n# Please enter the commit message for your changes. Lines starting\n# with '#' will be stripped.\n#\n${statusLines}\n`;
-        await Deno.writeTextFile(commitMsgFile, template);
-
-        // Open the file in a new split
-        const escaped = await fn.fnameescape(args.denops, commitMsgFile);
-        await args.denops.cmd(`new ${escaped}`);
-        await args.denops.cmd("setlocal filetype=gitcommit bufhidden=wipe");
-
-        // Run git commit when the buffer is closed
-        const callbackId = await register(
-          args.denops,
-          async () => {
-            const { success, out, err } = await runGit(
-              ["commit", "--file", commitMsgFile, "--cleanup=strip"],
-              action.cwd,
-            );
-            await echoLog(args.denops, out);
-            if (!success) {
-              await echoErr(args.denops, err);
-            }
-          },
-          { once: true },
-        );
-        await args.denops.cmd(
-          `autocmd BufWipeout <buffer> call denops#notify(${
-            JSON.stringify(args.denops.name)
-          }, ${JSON.stringify(callbackId)}, [])`,
-        );
-
-        return ActionFlags.None;
+        return await openCommitBuffer(args.denops, action, false);
       },
     },
 
@@ -241,59 +245,7 @@ export class Kind extends BaseKind<Params> {
       callback: async (args) => {
         const action = args.items[0]?.action as ActionData;
         if (!action) return ActionFlags.None;
-
-        // Get git directory
-        const { success: gitDirSuccess, out: gitDirOut } = await runGit(
-          ["rev-parse", "--git-dir"],
-          action.cwd,
-        );
-        if (!gitDirSuccess) return ActionFlags.None;
-
-        const gitDir = gitDirOut.startsWith("/")
-          ? gitDirOut
-          : `${action.cwd}/${gitDirOut}`;
-        const commitMsgFile = `${gitDir}/COMMIT_EDITMSG`;
-
-        // Pre-populate with the last commit message
-        const { out: lastMsg } = await runGit(
-          ["log", "-1", "--format=%B"],
-          action.cwd,
-        );
-        const { out: statusOut } = await runGit(["status"], action.cwd);
-        const statusLines = statusOut.split("\n").map((l) => `# ${l}`).join(
-          "\n",
-        );
-        const template =
-          `${lastMsg}\n# Please enter the commit message for your changes. Lines starting\n# with '#' will be stripped.\n#\n${statusLines}\n`;
-        await Deno.writeTextFile(commitMsgFile, template);
-
-        // Open the file in a new split
-        const escaped = await fn.fnameescape(args.denops, commitMsgFile);
-        await args.denops.cmd(`new ${escaped}`);
-        await args.denops.cmd("setlocal filetype=gitcommit bufhidden=wipe");
-
-        // Run git commit --amend when the buffer is closed
-        const callbackId = await register(
-          args.denops,
-          async () => {
-            const { success, out, err } = await runGit(
-              ["commit", "--amend", "--file", commitMsgFile, "--cleanup=strip"],
-              action.cwd,
-            );
-            await echoLog(args.denops, out);
-            if (!success) {
-              await echoErr(args.denops, err);
-            }
-          },
-          { once: true },
-        );
-        await args.denops.cmd(
-          `autocmd BufWipeout <buffer> call denops#notify(${
-            JSON.stringify(args.denops.name)
-          }, ${JSON.stringify(callbackId)}, [])`,
-        );
-
-        return ActionFlags.None;
+        return await openCommitBuffer(args.denops, action, true);
       },
     },
   };
