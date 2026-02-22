@@ -12,6 +12,7 @@ ddu sources and kinds for Git operations
 | `git_status` | `git_status` | `git_status` | Lists changed files from `git status`. Actions: diff, diffCached, add, restore, restoreStaged, commit, commitAmend, open, tabopen, delete, yank. |
 | `git_log` | `git_log` | `git_log` | Lists commits from `git log --graph`. Actions: reset, resetHard, createBranch, diff, files, yank. |
 | `git_log_files` | `git_log_files` | `git_log_files` | Lists files changed in a commit. Opened from `git_log` files action. Actions: open, tabopen, yank. |
+| `git_stash` | `git_stash` | `git_stash` | Lists stashes from `git stash list`. Actions: pop, apply, drop, branch, yank. Preview shows `git stash show -p`. |
 
 ## Requirements
 
