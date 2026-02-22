@@ -2,7 +2,8 @@ import { ActionFlags, type Actions } from "@shougo/ddu-vim/types";
 import { BaseKind } from "@shougo/ddu-vim/kind";
 import { WordActions } from "@shougo/ddu-kind-word";
 import * as fn from "@denops/std/function";
-import { echoErr, echoLog } from "@kmnk/ddu-git-utils";
+import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
+import { runGit } from "@kmnk/ddu-git-utils/git";
 
 export type ActionData = {
   branch: string;
@@ -12,25 +13,6 @@ export type ActionData = {
 };
 
 type Params = Record<string, never>;
-
-async function runGit(
-  args: string[],
-  cwd: string,
-): Promise<{ success: boolean; out: string; err: string }> {
-  const proc = new Deno.Command("git", {
-    args,
-    cwd,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const { success, stdout, stderr } = await proc.output();
-  const decoder = new TextDecoder();
-  return {
-    success,
-    out: decoder.decode(stdout).trim(),
-    err: decoder.decode(stderr).trim(),
-  };
-}
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {

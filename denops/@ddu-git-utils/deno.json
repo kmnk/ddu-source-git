@@ -2,7 +2,8 @@
   "name": "@kmnk/ddu-git-utils",
   "version": "0.0.0",
   "exports": {
-    ".": "./echo.ts"
+    "./echo": "./echo.ts",
+    "./git": "./git.ts"
   },
   "publish": {
     "include": ["**/*.ts"]
