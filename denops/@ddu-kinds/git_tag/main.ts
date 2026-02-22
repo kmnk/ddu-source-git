@@ -14,6 +14,7 @@ export type ActionData = {
   tagName: string;
   objectType: string; // "tag" (annotated) | "commit" (lightweight)
   subject: string;
+  text: string;
   cwd: string;
 };
 

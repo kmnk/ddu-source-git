@@ -91,6 +91,7 @@ export class Source extends BaseSource<Params> {
                 tagName,
                 objectType,
                 subject,
+                text: tagName,
                 cwd,
               },
             };
