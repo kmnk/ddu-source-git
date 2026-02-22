@@ -2,7 +2,14 @@
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-assisted-blueviolet?logo=anthropic)](https://claude.ai/claude-code)
 
-ddu sources and kinds for Git operations (branches, and more to come)
+ddu sources and kinds for Git operations
+
+## Sources / Kinds
+
+| Name | Source | Kind | Description |
+|------|--------|------|-------------|
+| `git_branch` | `git_branch` | `git_branch` | Lists git branches. Actions: switch, create, delete, rebase, move, copy, yank. |
+| `git_status` | `git_status` | `git_status` | Lists changed files from `git status`. Actions: add, restore, restoreStaged, commit, open, tabopen, delete, yank. |
 
 ## Requirements
 
