@@ -39,6 +39,8 @@ denops/
       main.ts
     git_log_files/        — Source: runs `git show --name-status`, returns changed file items for a commit
       main.ts
+    git_stash/            — Source: runs `git stash list`, returns stash items
+      main.ts
   @ddu-kinds/
     git_branch/           — Kind: defines actions on branch items
       main.ts
@@ -47,6 +49,8 @@ denops/
     git_log/              — Kind: defines actions on commit items
       main.ts
     git_log_files/        — Kind: defines actions on commit-file items
+      main.ts
+    git_stash/            — Kind: defines actions on stash items (pop, apply, drop, branch, yank)
       main.ts
 ```
 
@@ -62,6 +66,8 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Kind** (`@ddu-kinds/git_log`): implements ddu.vim `BaseKind`. Defines actions: `reset`, `resetHard`, `createBranch`, `diff`, `files`, `yank`. Provides a commit summary previewer.
 - **Source** (`@ddu-sources/git_log_files`): implements ddu.vim `BaseSource`. Calls `git show --name-status` for a given hash and maps each changed file into `DduItem[]`.
 - **Kind** (`@ddu-kinds/git_log_files`): implements ddu.vim `BaseKind`. Defines actions: `open`, `tabopen`, `yank`.
+- **Source** (`@ddu-sources/git_stash`): implements ddu.vim `BaseSource`. Calls `git stash list` and maps each stash into `DduItem[]`.
+- **Kind** (`@ddu-kinds/git_stash`): implements ddu.vim `BaseKind`. Defines actions: `pop`, `apply`, `drop`, `branch`, `yank`. Provides a diff previewer via `git stash show -p`.
 - **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`.
 - **Utils** (`@ddu-git-utils/git.ts`): provides `runGit` to execute git commands via `Deno.Command`. Shared across all kinds.
 
