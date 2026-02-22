@@ -16,6 +16,7 @@ type Params = {
   highlights: {
     current: string;
     remote: string;
+    worktree: string;
   };
 };
 
@@ -60,8 +61,11 @@ export class Source extends BaseSource<Params> {
         }
 
         const enc = new TextEncoder();
-        const { current: currentHlGroup, remote: remoteHlGroup } =
-          args.sourceParams.highlights;
+        const {
+          current: currentHlGroup,
+          remote: remoteHlGroup,
+          worktree: worktreeHlGroup,
+        } = args.sourceParams.highlights;
 
         const lines = output.split("\n");
         const items: Item<ActionData>[] = lines
@@ -69,18 +73,32 @@ export class Source extends BaseSource<Params> {
           .flatMap((line) => {
             const [refLine, refname, symref] = line.split("\t");
             if (symref) return [];
-            const match = refLine.match(/^(\*)?\s*(.+)$/);
+            // %(HEAD) is *, +, or space; %(refname:short) follows immediately
+            const match = refLine.match(/^([* +])(.+)$/);
             if (!match) return [];
-            const isCurrent = match[1] === "*";
+            const head = match[1];
+            const isCurrent = head === "*";
+            const isWorktree = head === "+";
             const branch = match[2];
             const isRemote = refname?.startsWith("refs/remotes/") ?? false;
-            const display = isCurrent ? `* ${branch}` : `  ${branch}`;
+            const display = isCurrent
+              ? `* ${branch}`
+              : isWorktree
+              ? `+ ${branch}`
+              : `  ${branch}`;
 
             const highlights: ItemHighlight[] = [];
             if (isCurrent) {
               highlights.push({
                 name: "git_branch-current",
                 hl_group: currentHlGroup,
+                col: 1,
+                width: enc.encode(display).length,
+              });
+            } else if (isWorktree) {
+              highlights.push({
+                name: "git_branch-worktree",
+                hl_group: worktreeHlGroup,
                 col: 1,
                 width: enc.encode(display).length,
               });
@@ -97,7 +115,7 @@ export class Source extends BaseSource<Params> {
               word: branch,
               display,
               highlights,
-              action: { branch, cwd, isCurrent, text: branch },
+              action: { branch, cwd, isCurrent, isWorktree, text: branch },
             }];
           });
 
@@ -114,6 +132,7 @@ export class Source extends BaseSource<Params> {
       highlights: {
         current: "Statement",
         remote: "Comment",
+        worktree: "Special",
       },
     };
   }

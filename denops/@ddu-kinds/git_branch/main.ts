@@ -9,6 +9,7 @@ export type ActionData = {
   branch: string;
   cwd: string;
   isCurrent: boolean;
+  isWorktree: boolean; // checked out in a linked worktree
   text: string;
 };
 
@@ -47,6 +48,14 @@ export class Kind extends BaseKind<Params> {
 
           if (action.isCurrent) {
             continue;
+          }
+
+          if (action.isWorktree) {
+            await echoErr(
+              args.denops,
+              `"${action.branch}" is already checked out in another worktree`,
+            );
+            return ActionFlags.Persist;
           }
 
           const { success, out, err } = await runGit(
