@@ -1,5 +1,4 @@
 import type { Denops } from "@denops/std";
-import * as fn from "@denops/std/function";
 
 export async function echoLog(
   denops: Denops,
@@ -12,9 +11,6 @@ export async function echoLog(
     .map((l) => l.replace(/\\/g, "\\\\").replace(/"/g, '\\"'))
     .join("\\n");
   await denops.cmd(`echo "${escaped}"`);
-  if (lines.length > 1) {
-    await fn.input(denops, "Press Enter to continue");
-  }
 }
 
 export async function echoErr(
@@ -28,7 +24,4 @@ export async function echoErr(
     .map((l) => l.replace(/\\/g, "\\\\").replace(/"/g, '\\"'))
     .join("\\n");
   await denops.cmd(`echohl ErrorMsg | echo "${escaped}" | echohl None`);
-  if (lines.length > 1) {
-    await fn.input(denops, "Press Enter to continue");
-  }
 }

@@ -1,0 +1,170 @@
+*ddu-source-git_status.txt*	Git status source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_status-contents*
+
+Introduction		|ddu-source-git_status-introduction|
+Install			|ddu-source-git_status-install|
+Source			|ddu-source-git_status-source|
+  Params		|ddu-source-git_status-source-params|
+Kind			|ddu-kind-git_status|
+  Actions		|ddu-kind-git_status-actions|
+Examples		|ddu-source-git_status-examples|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_status-introduction*
+
+This source collects `git status` output and lists changed files in ddu.vim.
+Each item represents one file with its staging/worktree status (XY codes).
+The accompanying kind provides git and file operations on the listed files.
+
+
+==============================================================================
+INSTALL					*ddu-source-git_status-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE					*ddu-source-git_status-source*
+
+git_status
+		Collects changed files from `git status --porcelain` output.
+		Each item displays the XY status code followed by the file path.
+		For renamed files the display is `XY orig -> new`.
+
+		Status codes (X = index, Y = worktree):
+		  ' '  unchanged
+		  M    modified
+		  A    added
+		  D    deleted
+		  R    renamed
+		  C    copied
+		  U    conflict (unmerged)
+		  ?    untracked
+		  !    ignored
+
+				*ddu-source-git_status-source-params*
+PARAMS ~
+
+args		(string[])
+		Additional arguments passed to `git status --porcelain`.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+highlights	(object)
+		Highlight group names for each status category.
+
+		highlights.staged    (string)
+			Highlight for staged changes (X position).
+			Default: "diffAdded"
+
+		highlights.unstaged  (string)
+			Highlight for unstaged changes (Y position).
+			Default: "diffChanged"
+
+		highlights.untracked (string)
+			Highlight for untracked files (?? status).
+			Default: "Comment"
+
+		highlights.conflict  (string)
+			Highlight for conflict files (U or AA/DD status).
+			Default: "ErrorMsg"
+
+
+==============================================================================
+KIND					*ddu-kind-git_status*
+
+git_status
+		Kind for git status items. Provides git and file operations.
+		`item.word` is the relative file path.
+
+				*ddu-kind-git_status-actions*
+ACTIONS ~
+
+yank
+		Yank the relative file path (`item.word`) to the unnamed
+		register.
+
+open
+		Open the file in the current window with `:edit`.
+
+tabopen
+		Open the file in a new tab with `:tabedit`.
+
+delete
+		Delete the file from the filesystem after confirmation.
+		Refreshes the ddu list on success.
+
+add
+		Stage the file with `git add <path>`.
+		Refreshes the ddu list on success.
+
+restore
+		Discard worktree changes with `git restore <path>` after
+		confirmation. Refreshes the ddu list on success.
+
+restoreStaged
+		Unstage the file with `git restore --staged <path>`.
+		Refreshes the ddu list on success.
+
+commit
+		Open `.git/COMMIT_EDITMSG` in a new split for editing.
+		The file is pre-populated with `git status` output as
+		comments. Closing the buffer (`:wq` or `:bdelete`) runs
+		`git commit --file=COMMIT_EDITMSG --cleanup=strip`.
+		Note: only the first selected item's `cwd` is used.
+
+
+==============================================================================
+EXAMPLES				*ddu-source-git_status-examples*
+
+>vim
+	" Basic usage
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_status'}],
+	  \ })
+
+	" Set default action to open
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_status: #{
+	  \       defaultAction: 'open',
+	  \     },
+	  \   },
+	  \ })
+
+	" Start with a name to enable per-source key mappings
+	call ddu#start(#{
+	  \   name: 'git_status',
+	  \   sources: [#{name: 'git_status'}],
+	  \ })
+
+	" Key mappings in ddu UI (ddu-ui-ff)
+	" Use if/elseif on b:ddu_ui_name to set per-source mappings in one place
+	autocmd FileType ddu-ff call s:ddu_ff_my_settings()
+	function s:ddu_ff_my_settings() abort
+	  if b:ddu_ui_name ==# 'git_status'
+	    nnoremap <buffer> a
+	      \ <Cmd>call ddu#ui#do_action('itemAction', #{name: 'add'})<CR>
+	    nnoremap <buffer> u
+	      \ <Cmd>call ddu#ui#do_action('itemAction', #{name: 'restoreStaged'})<CR>
+	  endif
+	endfunction
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

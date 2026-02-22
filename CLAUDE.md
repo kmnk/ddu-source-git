@@ -30,21 +30,25 @@ denops/
   @ddu-git-utils/
     echo.ts               — shared utilities (echoLog / echoErr), reused by all sources/kinds
   @ddu-sources/
-    git_branch/           — (current) Source: runs `git branch`, returns branch items
+    git_branch/           — Source: runs `git branch`, returns branch items
       main.ts
-    <future>/             — placeholder for upcoming sources (commits, stashes, tags, …)
+    git_status/           — Source: runs `git status --porcelain`, returns changed file items
+      main.ts
   @ddu-kinds/
-    git_branch/           — (current) Kind: defines actions on branch items
+    git_branch/           — Kind: defines actions on branch items
       main.ts
-    <future>/             — placeholder for upcoming kinds
+    git_status/           — Kind: defines actions on changed file items
+      main.ts
 ```
 
-Each Git concept (branch, commit, stash, tag, …) gets its own source/kind pair under `@ddu-sources/<name>` and `@ddu-kinds/<name>`, registered as a workspace member in `deno.jsonc`.
+Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `@ddu-kinds/<name>`, registered as a workspace member in `deno.jsonc`.
 
-### Key interfaces (current implementation)
+### Key interfaces
 
 - **Source** (`@ddu-sources/git_branch`): implements ddu.vim `BaseSource`. Calls `git branch` and maps output into `DduItem[]`.
 - **Kind** (`@ddu-kinds/git_branch`): implements ddu.vim `BaseKind`. Defines actions: `switch`, `delete`, `rebase`, `move`, `copy`, `create`, `yank`.
+- **Source** (`@ddu-sources/git_status`): implements ddu.vim `BaseSource`. Calls `git status --porcelain` and maps each line into `DduItem[]` with XY highlight.
+- **Kind** (`@ddu-kinds/git_status`): implements ddu.vim `BaseKind`. Defines actions: `add`, `restore`, `restoreStaged`, `commit`, `open`, `tabopen`, `delete`, `yank`.
 - **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`. Shared across all sources and kinds.
 
 ## Development Commands
