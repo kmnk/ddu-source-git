@@ -28,6 +28,8 @@
     "./denops/@ddu-sources/git_reflog",
     "./denops/@ddu-kinds/git_reflog",
     "./denops/@ddu-sources/git_config",
-    "./denops/@ddu-kinds/git_config"
+    "./denops/@ddu-kinds/git_config",
+    "./denops/@ddu-sources/git_remote",
+    "./denops/@ddu-kinds/git_remote"
   ]
 }

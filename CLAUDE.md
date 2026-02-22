@@ -47,6 +47,8 @@ denops/
       main.ts
     git_config/           — Source: runs `git config --list`, returns config entries
       main.ts
+    git_remote/           — Source: runs `git remote -v`, returns remote items
+      main.ts
   @ddu-kinds/
     git_branch/           — Kind: defines actions on branch items
       main.ts
@@ -63,6 +65,8 @@ denops/
     git_reflog/           — Kind: defines actions on reflog items (reset, resetHard, createBranch, yank)
       main.ts
     git_config/           — Kind: defines actions on config entries (set, unset, edit, yank)
+      main.ts
+    git_remote/           — Kind: defines actions on remote items (fetch, fetchPrune, yank)
       main.ts
 ```
 
@@ -86,6 +90,8 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Kind** (`@ddu-kinds/git_reflog`): implements ddu.vim `BaseKind`. Defines actions: `reset`, `resetHard`, `createBranch`, `yank`. Provides a commit info previewer.
 - **Source** (`@ddu-sources/git_config`): implements ddu.vim `BaseSource`. Calls `git config --list --show-scope --show-origin` and maps each entry into `DduItem[]`. Supports `scopes` param to filter by scope.
 - **Kind** (`@ddu-kinds/git_config`): implements ddu.vim `BaseKind`. Defines actions: `set` (prompts scope+value), `unset` (with confirm), `edit` (opens config file), `yank`.
+- **Source** (`@ddu-sources/git_remote`): implements ddu.vim `BaseSource`. Calls `git remote -v` and maps each remote (fetch entries only) into `DduItem[]` with name highlighted.
+- **Kind** (`@ddu-kinds/git_remote`): implements ddu.vim `BaseKind`. Defines actions: `fetch`, `fetchPrune`, `yank`. Provides a previewer via `git remote show -n`.
 - **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`.
 - **Utils** (`@ddu-git-utils/git.ts`): provides `runGit` to execute git commands via `Deno.Command`. Shared across all kinds.
 

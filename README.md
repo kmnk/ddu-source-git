@@ -16,6 +16,7 @@ ddu sources and kinds for Git operations
 | `git_tag` | `git_tag` | `git_tag` | Lists tags from `git tag -l`. Actions: checkout, createBranch, delete, diff, yank. Preview shows `git show --no-patch`. |
 | `git_reflog` | `git_reflog` | `git_reflog` | Lists reflog entries from `git reflog`. Actions: reset, resetHard, createBranch, yank. Preview shows commit info. |
 | `git_config` | `git_config` | `git_config` | Lists config entries from `git config --list`. Actions: set, unset, edit, yank. Source params: `scopes` (filter by scope). |
+| `git_remote` | `git_remote` | `git_remote` | Lists remotes from `git remote -v`. Actions: fetch, fetchPrune, yank. Preview shows `git remote show -n`. |
 
 ## Requirements
 
