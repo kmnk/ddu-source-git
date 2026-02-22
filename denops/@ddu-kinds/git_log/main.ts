@@ -205,10 +205,8 @@ export class Kind extends BaseKind<Params> {
           (items[0]?.action as ActionData).cwd,
         );
         if (!success) {
-          await echoErr(
-            args.denops,
-            [out, err].filter((s) => s !== "").join("\n"),
-          );
+          const combined = [out, err].filter((s) => s !== "").join("\n");
+          await openNofileBuffer(args.denops, combined.split("\n"));
           return ActionFlags.None;
         }
         await echoLog(
@@ -243,10 +241,8 @@ export class Kind extends BaseKind<Params> {
             action.cwd,
           );
           if (!success) {
-            await echoErr(
-              args.denops,
-              [out, err].filter((s) => s !== "").join("\n"),
-            );
+            const combined = [out, err].filter((s) => s !== "").join("\n");
+            await openNofileBuffer(args.denops, combined.split("\n"));
             return ActionFlags.None;
           }
           await echoLog(
