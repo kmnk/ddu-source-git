@@ -1,4 +1,9 @@
-import type { Context, Item, SourceOptions } from "@shougo/ddu-vim/types";
+import type {
+  Context,
+  Item,
+  ItemHighlight,
+  SourceOptions,
+} from "@shougo/ddu-vim/types";
 import { BaseSource } from "@shougo/ddu-vim/source";
 
 import type { ActionData } from "@kmnk/ddu-kind-git_stash";
@@ -8,6 +13,9 @@ import type { Denops } from "@denops/std";
 type Params = {
   args: string[];
   cwd: string;
+  highlights: {
+    stashRef: string;
+  };
 };
 
 export class Source extends BaseSource<Params> {
@@ -51,6 +59,9 @@ export class Source extends BaseSource<Params> {
           return;
         }
 
+        const enc = new TextEncoder();
+        const { stashRef: stashRefHl } = args.sourceParams.highlights;
+
         const lines = output.split("\n");
         const items: Item<ActionData>[] = lines
           .filter((line) => line !== "")
@@ -60,9 +71,19 @@ export class Source extends BaseSource<Params> {
             const subject = tabIdx !== -1 ? line.slice(tabIdx + 1) : "";
             const display = `${stashRef}: ${subject}`;
 
+            const highlights: ItemHighlight[] = [
+              {
+                name: "git_stash-stashRef",
+                hl_group: stashRefHl,
+                col: 1,
+                width: enc.encode(stashRef).length,
+              },
+            ];
+
             return {
               word: display,
               display,
+              highlights,
               action: {
                 stashRef,
                 subject,
@@ -82,6 +103,9 @@ export class Source extends BaseSource<Params> {
     return {
       args: [],
       cwd: "",
+      highlights: {
+        stashRef: "Identifier",
+      },
     };
   }
 }
