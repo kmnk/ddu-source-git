@@ -76,9 +76,7 @@ async function openDiffBuffer(
   const baseArgs = cached
     ? ["--no-pager", "diff", "--cached"]
     : ["--no-pager", "diff"];
-  const gitArgs = action.path === ""
-    ? baseArgs
-    : [...baseArgs, action.path];
+  const gitArgs = action.path === "" ? baseArgs : [...baseArgs, action.path];
   const { out } = await runGit(gitArgs, action.cwd);
 
   await denops.cmd("new");
