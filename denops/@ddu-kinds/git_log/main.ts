@@ -204,12 +204,17 @@ export class Kind extends BaseKind<Params> {
           ["cherry-pick", ...hashes],
           (items[0]?.action as ActionData).cwd,
         );
-        await echoLog(args.denops, out);
         if (!success) {
-          await echoErr(args.denops, err);
+          await echoErr(
+            args.denops,
+            [out, err].filter((s) => s !== "").join("\n"),
+          );
           return ActionFlags.None;
         }
-        await echoLog(args.denops, err);
+        await echoLog(
+          args.denops,
+          [out, err].filter((s) => s !== "").join("\n"),
+        );
 
         return ActionFlags.None;
       },
@@ -237,12 +242,17 @@ export class Kind extends BaseKind<Params> {
             ["revert", "--no-edit", action.fullHash],
             action.cwd,
           );
-          await echoLog(args.denops, out);
           if (!success) {
-            await echoErr(args.denops, err);
+            await echoErr(
+              args.denops,
+              [out, err].filter((s) => s !== "").join("\n"),
+            );
             return ActionFlags.None;
           }
-          await echoLog(args.denops, err);
+          await echoLog(
+            args.denops,
+            [out, err].filter((s) => s !== "").join("\n"),
+          );
         }
 
         return ActionFlags.None;
