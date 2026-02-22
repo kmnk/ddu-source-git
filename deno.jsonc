@@ -24,6 +24,8 @@
     "./denops/@ddu-sources/git_stash",
     "./denops/@ddu-kinds/git_stash",
     "./denops/@ddu-sources/git_tag",
-    "./denops/@ddu-kinds/git_tag"
+    "./denops/@ddu-kinds/git_tag",
+    "./denops/@ddu-sources/git_reflog",
+    "./denops/@ddu-kinds/git_reflog"
   ]
 }

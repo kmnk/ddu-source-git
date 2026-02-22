@@ -43,6 +43,8 @@ denops/
       main.ts
     git_tag/              — Source: runs `git tag -l`, returns tag items
       main.ts
+    git_reflog/           — Source: runs `git reflog`, returns reflog items
+      main.ts
   @ddu-kinds/
     git_branch/           — Kind: defines actions on branch items
       main.ts
@@ -55,6 +57,8 @@ denops/
     git_stash/            — Kind: defines actions on stash items (pop, apply, drop, branch, yank)
       main.ts
     git_tag/              — Kind: defines actions on tag items (checkout, createBranch, delete, diff, yank)
+      main.ts
+    git_reflog/           — Kind: defines actions on reflog items (reset, resetHard, createBranch, yank)
       main.ts
 ```
 
@@ -74,6 +78,8 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Kind** (`@ddu-kinds/git_stash`): implements ddu.vim `BaseKind`. Defines actions: `pop`, `apply`, `drop`, `branch`, `yank`. Provides a diff previewer via `git stash show -p`.
 - **Source** (`@ddu-sources/git_tag`): implements ddu.vim `BaseSource`. Calls `git tag -l --sort=-version:refname` and maps each tag into `DduItem[]`.
 - **Kind** (`@ddu-kinds/git_tag`): implements ddu.vim `BaseKind`. Defines actions: `checkout`, `createBranch`, `delete`, `diff`, `yank`. Provides a previewer via `git show --no-patch`.
+- **Source** (`@ddu-sources/git_reflog`): implements ddu.vim `BaseSource`. Calls `git reflog` and maps each entry into `DduItem[]` with hash/ref highlights.
+- **Kind** (`@ddu-kinds/git_reflog`): implements ddu.vim `BaseKind`. Defines actions: `reset`, `resetHard`, `createBranch`, `yank`. Provides a commit info previewer.
 - **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`.
 - **Utils** (`@ddu-git-utils/git.ts`): provides `runGit` to execute git commands via `Deno.Command`. Shared across all kinds.
 
