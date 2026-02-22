@@ -1,3 +1,4 @@
+import type { Denops } from "@denops/std";
 import { ActionFlags, type Actions } from "@shougo/ddu-vim/types";
 import { BaseKind } from "@shougo/ddu-vim/kind";
 import { WordActions } from "@shougo/ddu-kind-word";
@@ -15,6 +16,26 @@ export type ActionData = {
 
 type Params = Record<string, never>;
 
+async function openDiffBuffer(
+  denops: Denops,
+  action: ActionData,
+  cached: boolean,
+): Promise<void> {
+  const baseArgs = cached
+    ? ["--no-pager", "diff", "--cached"]
+    : ["--no-pager", "diff"];
+  const gitArgs = action.path === ""
+    ? baseArgs
+    : [...baseArgs, action.path];
+  const { out } = await runGit(gitArgs, action.cwd);
+
+  await denops.cmd("new");
+  await denops.cmd(
+    "setlocal buftype=nofile bufhidden=wipe noswapfile filetype=diff",
+  );
+  await fn.setline(denops, 1, out.split("\n"));
+}
+
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {
     yank: WordActions.yank,
@@ -23,19 +44,7 @@ export class Kind extends BaseKind<Params> {
       description: "Show git diff for the file.",
       callback: async (args) => {
         for (const item of args.items) {
-          const action = item?.action as ActionData;
-
-          const gitArgs = action.path === ""
-            ? ["--no-pager", "diff"]
-            : ["--no-pager", "diff", action.path];
-          const { out } = await runGit(gitArgs, action.cwd);
-
-          await args.denops.cmd("new");
-          await args.denops.cmd(
-            "setlocal buftype=nofile bufhidden=wipe noswapfile filetype=diff",
-          );
-          const lines = out.split("\n");
-          await fn.setline(args.denops, 1, lines);
+          await openDiffBuffer(args.denops, item?.action as ActionData, false);
         }
         return ActionFlags.None;
       },
@@ -45,19 +54,7 @@ export class Kind extends BaseKind<Params> {
       description: "Show git diff --cached for the file.",
       callback: async (args) => {
         for (const item of args.items) {
-          const action = item?.action as ActionData;
-
-          const gitArgs = action.path === ""
-            ? ["--no-pager", "diff", "--cached"]
-            : ["--no-pager", "diff", "--cached", action.path];
-          const { out } = await runGit(gitArgs, action.cwd);
-
-          await args.denops.cmd("new");
-          await args.denops.cmd(
-            "setlocal buftype=nofile bufhidden=wipe noswapfile filetype=diff",
-          );
-          const lines = out.split("\n");
-          await fn.setline(args.denops, 1, lines);
+          await openDiffBuffer(args.denops, item?.action as ActionData, true);
         }
         return ActionFlags.None;
       },
