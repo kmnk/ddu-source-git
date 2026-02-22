@@ -131,8 +131,10 @@ diff
 		`git diff <oldest>..<newest>`.
 
 files
-		Show the list of files changed in the selected commit using
-		`git show --name-status` in a new scratch buffer.
+		Open a ddu UI listing files changed in the selected commit.
+		Uses the `git_log_files` source and kind.
+		Each item represents one changed file with its status code.
+		Available actions on each file: `open`, `tabopen`, `yank`.
 
 				*ddu-kind-git_log-preview*
 PREVIEW ~

@@ -169,27 +169,18 @@ export class Kind extends BaseKind<Params> {
     },
 
     files: {
-      description: "Show files changed in the selected commit.",
+      description:
+        "Open a ddu UI listing files changed in the selected commit.",
       callback: async (args) => {
         for (const item of args.items) {
           const action = item?.action as ActionData;
           if (action.fullHash === "") continue;
-
-          const { success, out, err } = await runGit(
-            [
-              "--no-pager",
-              "show",
-              "--name-status",
-              "--format=",
-              action.fullHash,
-            ],
-            action.cwd,
-          );
-          if (!success) {
-            await echoErr(args.denops, err);
-            return ActionFlags.None;
-          }
-          await openNofileBuffer(args.denops, out.split("\n"));
+          await args.denops.call("ddu#start", {
+            sources: [{
+              name: "git_log_files",
+              params: { hash: action.fullHash, cwd: action.cwd },
+            }],
+          });
         }
         return ActionFlags.None;
       },
