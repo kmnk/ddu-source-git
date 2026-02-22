@@ -13,6 +13,7 @@ ddu sources and kinds for Git operations
 | `git_log` | `git_log` | `git_log` | Lists commits from `git log --graph`. Actions: reset, resetHard, createBranch, cherryPick, revert, tag, diff, files, yank. |
 | `git_log_files` | `git_log_files` | `git_log_files` | Lists files changed in a commit. Opened from `git_log` files action. Actions: open, tabopen, yank. |
 | `git_stash` | `git_stash` | `git_stash` | Lists stashes from `git stash list`. Actions: pop, apply, drop, branch, yank. Preview shows `git stash show -p`. |
+| `git_tag` | `git_tag` | `git_tag` | Lists tags from `git tag -l`. Actions: checkout, createBranch, delete, diff, yank. Preview shows `git show --no-patch`. |
 
 ## Requirements
 

@@ -22,6 +22,8 @@
     "./denops/@ddu-sources/git_log_files",
     "./denops/@ddu-kinds/git_log_files",
     "./denops/@ddu-sources/git_stash",
-    "./denops/@ddu-kinds/git_stash"
+    "./denops/@ddu-kinds/git_stash",
+    "./denops/@ddu-sources/git_tag",
+    "./denops/@ddu-kinds/git_tag"
   ]
 }
