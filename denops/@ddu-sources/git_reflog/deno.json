@@ -1,0 +1,15 @@
+{
+  "name": "@kmnk/ddu-source-git_reflog",
+  "version": "0.0.0",
+  "exports": {
+    ".": "./main.ts"
+  },
+  "publish": {
+    "include": ["**/*.ts"]
+  },
+  "imports": {
+    "@denops/std": "jsr:@denops/std@~8.0.0",
+    "@shougo/ddu-vim": "jsr:@shougo/ddu-vim@~11.0.0",
+    "@kmnk/ddu-kind-git_reflog": "../../@ddu-kinds/git_reflog/main.ts"
+  }
+}
