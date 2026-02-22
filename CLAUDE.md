@@ -63,7 +63,7 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Source** (`@ddu-sources/git_status`): implements ddu.vim `BaseSource`. Calls `git status --porcelain` and maps each line into `DduItem[]` with XY highlight.
 - **Kind** (`@ddu-kinds/git_status`): implements ddu.vim `BaseKind`. Defines actions: `diff`, `diffCached`, `add`, `restore`, `restoreStaged`, `commit`, `commitAmend`, `open`, `tabopen`, `delete`, `yank`.
 - **Source** (`@ddu-sources/git_log`): implements ddu.vim `BaseSource`. Calls `git log --graph` and maps each line into `DduItem[]` with graph/hash highlights.
-- **Kind** (`@ddu-kinds/git_log`): implements ddu.vim `BaseKind`. Defines actions: `reset`, `resetHard`, `createBranch`, `diff`, `files`, `yank`. Provides a commit summary previewer.
+- **Kind** (`@ddu-kinds/git_log`): implements ddu.vim `BaseKind`. Defines actions: `reset`, `resetHard`, `createBranch`, `cherryPick`, `revert`, `tag`, `diff`, `files`, `yank`. Provides a commit summary previewer.
 - **Source** (`@ddu-sources/git_log_files`): implements ddu.vim `BaseSource`. Calls `git show --name-status` for a given hash and maps each changed file into `DduItem[]`.
 - **Kind** (`@ddu-kinds/git_log_files`): implements ddu.vim `BaseKind`. Defines actions: `open`, `tabopen`, `yank`.
 - **Source** (`@ddu-sources/git_stash`): implements ddu.vim `BaseSource`. Calls `git stash list` and maps each stash into `DduItem[]`.
