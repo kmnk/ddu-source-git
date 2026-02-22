@@ -175,8 +175,13 @@ export class Kind extends BaseKind<Params> {
             continue;
           }
 
+          const escapedCwd = await fn.shellescape(args.denops, action.cwd);
+          const escapedBranch = await fn.shellescape(
+            args.denops,
+            action.branch,
+          );
           await args.denops.cmd(
-            `terminal git -C ${action.cwd} rebase -i ${action.branch}`,
+            `terminal git -C ${escapedCwd} rebase -i ${escapedBranch}`,
           );
         }
 
