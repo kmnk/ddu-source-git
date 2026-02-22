@@ -16,6 +16,8 @@
     "./denops/@ddu-sources/git_branch",
     "./denops/@ddu-kinds/git_branch",
     "./denops/@ddu-sources/git_status",
-    "./denops/@ddu-kinds/git_status"
+    "./denops/@ddu-kinds/git_status",
+    "./denops/@ddu-sources/git_log",
+    "./denops/@ddu-kinds/git_log"
   ]
 }

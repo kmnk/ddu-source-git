@@ -1,0 +1,221 @@
+*ddu-source-git_log.txt*	Git log source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_log-contents*
+
+Introduction		|ddu-source-git_log-introduction|
+Install			|ddu-source-git_log-install|
+Source			|ddu-source-git_log-source|
+  Params		|ddu-source-git_log-source-params|
+Kind			|ddu-kind-git_log|
+  Actions		|ddu-kind-git_log-actions|
+  Preview		|ddu-kind-git_log-preview|
+Examples		|ddu-source-git_log-examples|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_log-introduction*
+
+This source collects `git log` output and lists commits in ddu.vim.
+Each item represents one commit and includes the graph decoration,
+abbreviated hash, and subject line.
+The accompanying kind provides operations on commits.
+
+
+==============================================================================
+INSTALL					*ddu-source-git_log-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE					*ddu-source-git_log-source*
+
+git_log
+		Collects commits from `git log --graph` output.
+		Each item displays the graph decoration, abbreviated hash,
+		and subject line. Graph-only lines (branch connectors such
+		as `|`, `/`, `\`) are included as non-actionable items to
+		preserve the graph shape.
+
+		`item.word` is `"<shortHash> <subject>"`.
+		`item.display` is `"<graphPrefix><shortHash> <subject>"`.
+
+		Highlights applied per item:
+
+		  git_log-graph   Graph connector characters (`|`, `/`, `\`,
+		                  `-`, spaces). Uses |highlights.graph|.
+		  git_log-node    The `*` commit node marker.
+		                  Uses |highlights.node|.
+		  git_log-hash    The abbreviated commit hash.
+		                  Uses |highlights.hash|.
+
+				*ddu-source-git_log-source-params*
+PARAMS ~
+
+args		(string[])
+		Additional arguments passed to `git log`.
+		For example, ["--all"] to include all branches,
+		or ["-n", "100"] to limit the number of commits.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+highlights	(object)
+		Highlight group names for commit display.
+
+		highlights.graph  (string)
+			Highlight applied to graph connector characters
+			(`|`, `/`, `\`, `-`) and graph-only lines.
+			Default: "Comment"
+
+		highlights.node   (string)
+			Highlight applied to the `*` commit node marker.
+			Default: "Special"
+
+		highlights.hash   (string)
+			Highlight applied to the abbreviated commit hash.
+			Default: "Identifier"
+
+
+==============================================================================
+KIND					*ddu-kind-git_log*
+
+git_log
+		Kind for git log items. Provides commit operations.
+		Graph-only items (those with an empty `fullHash`) are
+		silently skipped by all actions.
+
+		`item.action.text` holds the full commit hash and is used
+		as the yank target.
+
+				*ddu-kind-git_log-actions*
+ACTIONS ~
+
+yank
+		Yank the full commit hash (`item.action.text`) to the
+		unnamed register.
+
+reset
+		Run `git reset <hash>` (mixed reset) on the selected commit
+		after confirmation. On failure, the error message is echoed.
+
+resetHard
+		Run `git reset --hard <hash>` on the selected commit after
+		confirmation. On failure, the error message is echoed.
+
+createBranch
+		Prompt for a branch name, then create a new branch at the
+		selected commit with `git switch -c <name> <hash>`.
+		Empty input cancels the action.
+
+diff
+		Show a diff in a new scratch buffer with `filetype=diff`.
+
+		Single selection: shows `git diff <hash>^..<hash>`.
+		  Note: fails with an error message if the selected commit
+		  has no parent (initial commit).
+
+		Multiple selections: treats the first selected item as the
+		newest commit and the last as the oldest, then shows
+		`git diff <oldest>..<newest>`.
+
+files
+		Show the list of files changed in the selected commit using
+		`git show --name-status` in a new scratch buffer.
+
+				*ddu-kind-git_log-preview*
+PREVIEW ~
+
+		Selecting an item displays a commit summary in the preview
+		window containing:
+		  - full commit hash
+		  - author name and email
+		  - author date
+		  - subject and body
+
+		Preview is not shown for graph-only items.
+
+
+==============================================================================
+EXAMPLES				*ddu-source-git_log-examples*
+
+>vim
+	" Basic usage
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_log'}],
+	  \ })
+
+	" Include all branches
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_log',
+	  \     params: #{args: ['--all']},
+	  \   }],
+	  \ })
+
+	" Limit to 200 commits
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_log',
+	  \     params: #{args: ['-n', '200']},
+	  \   }],
+	  \ })
+
+	" Set default action to diff
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_log: #{
+	  \       defaultAction: 'diff',
+	  \     },
+	  \   },
+	  \ })
+
+	" Show log for the current file
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_log',
+	  \     params: #{
+	  \       args: ['--', expand('%:p')],
+	  \       cwd: expand('%:p:h'),
+	  \     },
+	  \   }],
+	  \ })
+
+	" Show preview automatically on cursor move
+	call ddu#custom#patch_local('git_log', #{
+	  \   uiParams: #{
+	  \     ff: #{
+	  \       autoAction: #{name: 'preview'},
+	  \       startAutoAction: v:true,
+	  \     },
+	  \   },
+	  \ })
+
+	" Key mappings in ddu UI (ddu-ui-ff)
+	autocmd FileType ddu-ff call s:ddu_ff_my_settings()
+	function s:ddu_ff_my_settings() abort
+	  if b:ddu_ui_name ==# 'git_log'
+	    nnoremap <buffer> d
+	      \ <Cmd>call ddu#ui#do_action('itemAction', #{name: 'diff'})<CR>
+	    nnoremap <buffer> f
+	      \ <Cmd>call ddu#ui#do_action('itemAction', #{name: 'files'})<CR>
+	    nnoremap <buffer> b
+	      \ <Cmd>call ddu#ui#do_action('itemAction', #{name: 'createBranch'})<CR>
+	  endif
+	endfunction
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
