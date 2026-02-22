@@ -7,7 +7,7 @@ import {
 import { BaseKind, type GetPreviewerArguments } from "@shougo/ddu-vim/kind";
 import { WordActions } from "@shougo/ddu-kind-word";
 import * as fn from "@denops/std/function";
-import { echoErr } from "@kmnk/ddu-git-utils/echo";
+import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { runGit } from "@kmnk/ddu-git-utils/git";
 
 export type ActionData = {
@@ -182,6 +182,100 @@ export class Kind extends BaseKind<Params> {
             }],
           });
         }
+        return ActionFlags.None;
+      },
+    },
+
+    cherryPick: {
+      description:
+        "Apply the selected commit(s) to the current branch with `git cherry-pick`.",
+      callback: async (args) => {
+        const items = args.items.filter(
+          (item) => (item?.action as ActionData).fullHash !== "",
+        );
+        if (items.length === 0) return ActionFlags.None;
+
+        // Apply in reverse order (oldest first) so the result matches selection order
+        const hashes = items
+          .map((item) => (item?.action as ActionData).fullHash)
+          .reverse();
+
+        const { success, out, err } = await runGit(
+          ["cherry-pick", ...hashes],
+          (items[0]?.action as ActionData).cwd,
+        );
+        await echoLog(args.denops, out);
+        if (!success) {
+          await echoErr(args.denops, err);
+          return ActionFlags.None;
+        }
+        await echoLog(args.denops, err);
+
+        return ActionFlags.None;
+      },
+    },
+
+    revert: {
+      description:
+        "Revert the selected commit with `git revert --no-edit`. Requires confirmation.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          if (action.fullHash === "") continue;
+
+          const confirm = await fn.confirm(
+            args.denops,
+            `Revert "${action.shortHash} ${action.subject}"?`,
+            "&Yes\n&No",
+            2,
+          ) as number;
+          if (confirm !== 1) {
+            return ActionFlags.Persist;
+          }
+
+          const { success, out, err } = await runGit(
+            ["revert", "--no-edit", action.fullHash],
+            action.cwd,
+          );
+          await echoLog(args.denops, out);
+          if (!success) {
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
+          }
+          await echoLog(args.denops, err);
+        }
+
+        return ActionFlags.None;
+      },
+    },
+
+    tag: {
+      description: "Create a tag at the selected commit with `git tag <name>`.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          if (action.fullHash === "") continue;
+
+          const tagName = await fn.input(
+            args.denops,
+            `Tag name for "${action.shortHash}": `,
+          ) as string;
+          if (tagName === "") {
+            return ActionFlags.Persist;
+          }
+
+          const { success, out, err } = await runGit(
+            ["tag", tagName, action.fullHash],
+            action.cwd,
+          );
+          await echoLog(args.denops, out);
+          if (!success) {
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
+          }
+          await echoLog(args.denops, err);
+        }
+
         return ActionFlags.None;
       },
     },
