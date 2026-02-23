@@ -84,15 +84,26 @@ export class Source extends BaseSource<Params> {
         }
 
         const output = new TextDecoder().decode(stdout).trimEnd();
-        if (output === "") {
-          controller.close();
-          return;
-        }
 
         const enc = new TextEncoder();
         const { hash: hashHl, status: statusHl } = args.sourceParams.highlights;
 
-        const items: Item<ActionData>[] = output
+        // Header item is always present so actions (e.g. `add`) can be
+        // triggered even when there are no submodules yet.
+        const headerItem: Item<ActionData> = {
+          word: "",
+          action: {
+            isHeader: true,
+            status: "",
+            hash: "",
+            path: "",
+            describe: "",
+            text: "",
+            cwd,
+          },
+        };
+
+        const submoduleItems: Item<ActionData>[] = output === "" ? [] : output
           .split("\n")
           .filter((line) => line.length > 0)
           .flatMap((line) => {
@@ -102,13 +113,7 @@ export class Source extends BaseSource<Params> {
             const { status, hash, path, describe } = parsed;
             const shortHash = hash.slice(0, 7);
 
-            const statusLabel: Record<string, string> = {
-              " ": " ",
-              "-": "-",
-              "+": "+",
-              "U": "U",
-            };
-            const statusChar = statusLabel[status] ?? status;
+            const statusChar = status;
             const describeStr = describe !== "" ? `  (${describe})` : "";
             const display = `${statusChar}${shortHash}  ${path}${describeStr}`;
             const word = `${path}`;
@@ -145,7 +150,7 @@ export class Source extends BaseSource<Params> {
             ];
           });
 
-        controller.enqueue(items);
+        controller.enqueue([headerItem, ...submoduleItems]);
         controller.close();
       },
     });

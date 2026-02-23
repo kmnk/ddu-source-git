@@ -9,6 +9,7 @@ import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { runGit } from "@kmnk/ddu-git-utils/git";
 
 export type ActionData = {
+  isHeader?: boolean; // true for the always-present header item
   status: string; // " " | "-" | "+" | "U"
   hash: string; // commit hash (40 chars)
   path: string; // submodule path relative to cwd
@@ -28,6 +29,7 @@ export class Kind extends BaseKind<Params> {
       callback: async (args) => {
         for (const item of args.items) {
           const action = item?.action as ActionData;
+          if (action.isHeader) continue;
           await fn.setreg(args.denops, '"', action.text);
           await fn.setreg(args.denops, "*", action.text);
         }
@@ -41,6 +43,7 @@ export class Kind extends BaseKind<Params> {
       callback: async (args) => {
         for (const item of args.items) {
           const action = item?.action as ActionData;
+          if (action.isHeader) continue;
           const absPath = action.path.startsWith("/")
             ? action.path
             : `${action.cwd}/${action.path}`;
@@ -52,12 +55,41 @@ export class Kind extends BaseKind<Params> {
       },
     },
 
+    add: {
+      description:
+        "Add a new submodule (`git submodule add <url> [path]`). Prompts for URL and optional path.",
+      callback: async (args) => {
+        const cwd = (args.items[0]?.action as ActionData).cwd;
+        const url = (await fn.input(args.denops, "Submodule URL: ")) as string;
+        if (url === "") return ActionFlags.Persist;
+        const path = (await fn.input(
+          args.denops,
+          "Submodule path (empty to use default): ",
+        )) as string;
+
+        const cmdArgs = [
+          "submodule",
+          "add",
+          url,
+          ...(path !== "" ? [path] : []),
+        ];
+        const { success, err } = await runGit(cmdArgs, cwd);
+        if (!success) {
+          await echoErr(args.denops, err);
+          return ActionFlags.None;
+        }
+        await echoLog(args.denops, `Added submodule: ${path || url}`);
+        return ActionFlags.RefreshItems;
+      },
+    },
+
     update: {
       description:
         "Initialize and update the submodule (`git submodule update --init`).",
       callback: async (args) => {
         for (const item of args.items) {
           const action = item?.action as ActionData;
+          if (action.isHeader) continue;
 
           const { success, err } = await runGit(
             ["submodule", "update", "--init", action.path],
@@ -81,6 +113,7 @@ export class Kind extends BaseKind<Params> {
       callback: async (args) => {
         for (const item of args.items) {
           const action = item?.action as ActionData;
+          if (action.isHeader) continue;
 
           const { success, err } = await runGit(
             ["submodule", "init", action.path],
@@ -105,6 +138,7 @@ export class Kind extends BaseKind<Params> {
       callback: async (args) => {
         for (const item of args.items) {
           const action = item?.action as ActionData;
+          if (action.isHeader) continue;
 
           const confirm = await fn.confirm(
             args.denops,
