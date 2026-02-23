@@ -132,6 +132,57 @@ export class Kind extends BaseKind<Params> {
       },
     },
 
+    delete: {
+      description:
+        "Completely remove the submodule (`git rm` + `.git/modules` cleanup). Requires confirmation.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          if (action.isHeader) continue;
+
+          const confirm = await fn.confirm(
+            args.denops,
+            `Delete submodule "${action.path}"? This cannot be undone.`,
+            "&Yes\n&No",
+            2,
+          ) as number;
+          if (confirm !== 1) {
+            return ActionFlags.Persist;
+          }
+
+          // Step 1: git rm removes the submodule from .gitmodules, index, and working tree
+          const { success, err } = await runGit(
+            ["rm", action.path],
+            action.cwd,
+          );
+          if (!success) {
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
+          }
+
+          // Step 2: remove .git/modules/<path> to allow re-adding the submodule later
+          const { out: gitDir } = await runGit(
+            ["rev-parse", "--git-dir"],
+            action.cwd,
+          );
+          if (gitDir !== "") {
+            const absGitDir = gitDir.startsWith("/")
+              ? gitDir
+              : `${action.cwd}/${gitDir}`;
+            const modulesPath = `${absGitDir}/modules/${action.path}`;
+            try {
+              await Deno.remove(modulesPath, { recursive: true });
+            } catch {
+              // Ignore if the directory does not exist
+            }
+          }
+
+          await echoLog(args.denops, `Deleted submodule: ${action.path}`);
+        }
+        return ActionFlags.RefreshItems;
+      },
+    },
+
     deinit: {
       description:
         "Unregister the submodule (`git submodule deinit`). Requires confirmation.",
