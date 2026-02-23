@@ -91,7 +91,7 @@ export class Source extends BaseSource<Params> {
         // Header item is always present so actions (e.g. `add`) can be
         // triggered even when there are no submodules yet.
         const headerItem: Item<ActionData> = {
-          word: "",
+          word: cwd,
           action: {
             isHeader: true,
             status: "",
