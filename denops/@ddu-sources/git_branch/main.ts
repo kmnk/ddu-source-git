@@ -54,8 +54,12 @@ export class Source extends BaseSource<Params> {
           return;
         }
 
-        const output = new TextDecoder().decode(stdout).trim();
-        if (output === "") {
+        // Do NOT trim() the whole output: %(HEAD) for a non-current branch is a
+        // single space character, so trimming would strip the leading " \t" of
+        // the first line and break field parsing.
+        const rawOutput = new TextDecoder().decode(stdout);
+        const lines = rawOutput.split("\n").filter((line) => line !== "");
+        if (lines.length === 0) {
           controller.close();
           return;
         }
@@ -67,16 +71,15 @@ export class Source extends BaseSource<Params> {
           worktree: worktreeHlGroup,
         } = args.sourceParams.highlights;
 
-        const lines = output.split("\n");
         const items: Item<ActionData>[] = lines
-          .filter((line) => line !== "")
           .flatMap((line) => {
             // Use %(refname) instead of %(refname:short) to avoid ambiguity
             // when a local branch name conflicts with a remote-tracking branch.
             const [head, refname, symref, worktreePath] = line.split("\t");
             if (!refname) return [];
             if (symref) return [];
-            // %(HEAD): '*' current, '+' linked-worktree (git 2.41+), ' '/''/etc otherwise
+            // %(HEAD): '*' for current branch, ' ' for everything else
+            // (%(worktreepath) is the reliable way to detect linked-worktree branches)
             const isCurrent = head === "*";
             const isRemote = refname.startsWith("refs/remotes/");
             // Strip standard ref prefixes for display
@@ -85,10 +88,8 @@ export class Source extends BaseSource<Params> {
               : refname.startsWith("refs/remotes/")
               ? refname.slice("refs/remotes/".length)
               : refname;
-            // git 2.41+: %(HEAD)='+' for linked-worktree branches
-            // older git: use %(worktreepath) non-empty (excluding current branch)
-            const isWorktree = head === "+" ||
-              (!isCurrent && (worktreePath ?? "") !== "");
+            // Detect branches checked out in a linked worktree via %(worktreepath)
+            const isWorktree = !isCurrent && (worktreePath ?? "") !== "";
             const display = isCurrent
               ? `* ${branch}`
               : isWorktree
