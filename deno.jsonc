@@ -32,6 +32,8 @@
     "./denops/@ddu-sources/git_remote",
     "./denops/@ddu-kinds/git_remote",
     "./denops/@ddu-sources/git_worktree",
-    "./denops/@ddu-kinds/git_worktree"
+    "./denops/@ddu-kinds/git_worktree",
+    "./denops/@ddu-sources/git_grep",
+    "./denops/@ddu-kinds/git_grep"
   ]
 }
