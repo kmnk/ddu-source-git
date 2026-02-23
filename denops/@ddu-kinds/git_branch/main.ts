@@ -9,6 +9,7 @@ export type ActionData = {
   branch: string;
   cwd: string;
   isCurrent: boolean;
+  isWorktree: boolean; // checked out in a linked worktree
   text: string;
 };
 
@@ -47,6 +48,14 @@ export class Kind extends BaseKind<Params> {
 
           if (action.isCurrent) {
             continue;
+          }
+
+          if (action.isWorktree) {
+            await echoErr(
+              args.denops,
+              `"${action.branch}" is already checked out in another worktree`,
+            );
+            return ActionFlags.Persist;
           }
 
           const { success, out, err } = await runGit(
@@ -382,6 +391,39 @@ export class Kind extends BaseKind<Params> {
 
           const { success, out, err } = await runGit(
             ["fetch", remote, action.branch],
+            action.cwd,
+          );
+          if (!success) {
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
+          }
+          await echoLog(
+            args.denops,
+            [out, err].filter((s) => s !== "").join("\n"),
+          );
+        }
+
+        return ActionFlags.None;
+      },
+    },
+
+    addWorktree: {
+      description:
+        "Create a new worktree for the selected branch (`git worktree add <path> <branch>`).",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+
+          const path = await fn.input(
+            args.denops,
+            `Worktree path for "${action.branch}": `,
+          ) as string;
+          if (path === "") {
+            return ActionFlags.Persist;
+          }
+
+          const { success, out, err } = await runGit(
+            ["worktree", "add", path, action.branch],
             action.cwd,
           );
           if (!success) {

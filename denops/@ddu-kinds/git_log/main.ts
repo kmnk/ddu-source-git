@@ -285,6 +285,46 @@ export class Kind extends BaseKind<Params> {
         return ActionFlags.None;
       },
     },
+
+    addWorktree: {
+      description:
+        "Create a new worktree at the selected commit. Prompts for a branch name (empty = detached HEAD) and path.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          if (action.fullHash === "") continue;
+
+          const branchName = await fn.input(
+            args.denops,
+            `New branch name (empty for detached HEAD) at "${action.shortHash}": `,
+          ) as string;
+
+          const path = await fn.input(
+            args.denops,
+            `Worktree path: `,
+          ) as string;
+          if (path === "") {
+            return ActionFlags.Persist;
+          }
+
+          const gitArgs = branchName !== ""
+            ? ["worktree", "add", "-b", branchName, path, action.fullHash]
+            : ["worktree", "add", "--detach", path, action.fullHash];
+
+          const { success, out, err } = await runGit(gitArgs, action.cwd);
+          if (!success) {
+            await echoErr(args.denops, err);
+            return ActionFlags.None;
+          }
+          await echoLog(
+            args.denops,
+            [out, err].filter((s) => s !== "").join("\n"),
+          );
+        }
+
+        return ActionFlags.None;
+      },
+    },
   };
 
   override async getPreviewer(

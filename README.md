@@ -8,15 +8,16 @@ ddu sources and kinds for Git operations
 
 | Name | Source | Kind | Description |
 |------|--------|------|-------------|
-| `git_branch` | `git_branch` | `git_branch` | Lists git branches. Actions: switch, create, delete, deleteForce, rebase, rebaseInteractive, move, copy, merge, push, pushForce, fetch, yank. Kind params: `remote` (default: `"origin"`). |
+| `git_branch` | `git_branch` | `git_branch` | Lists git branches. Actions: switch, create, delete, deleteForce, rebase, rebaseInteractive, move, copy, merge, push, pushForce, fetch, addWorktree, yank. Kind params: `remote` (default: `"origin"`). |
 | `git_status` | `git_status` | `git_status` | Lists changed files from `git status`. Actions: diff, diffCached, add, restore, restoreStaged, commit, commitAmend, open, tabopen, delete, yank. |
-| `git_log` | `git_log` | `git_log` | Lists commits from `git log --graph`. Actions: reset, resetHard, createBranch, cherryPick, revert, tag, diff, files, yank. |
+| `git_log` | `git_log` | `git_log` | Lists commits from `git log --graph`. Actions: reset, resetHard, createBranch, cherryPick, revert, tag, diff, files, addWorktree, yank. |
 | `git_log_files` | `git_log_files` | `git_log_files` | Lists files changed in a commit. Opened from `git_log` files action. Actions: open, tabopen, yank. |
 | `git_stash` | `git_stash` | `git_stash` | Lists stashes from `git stash list`. Actions: pop, apply, drop, branch, yank. Preview shows `git stash show -p`. |
 | `git_tag` | `git_tag` | `git_tag` | Lists tags from `git tag -l`. Actions: checkout, createBranch, delete, diff, yank. Preview shows `git show --no-patch`. |
 | `git_reflog` | `git_reflog` | `git_reflog` | Lists reflog entries from `git reflog`. Actions: reset, resetHard, createBranch, yank. Preview shows commit info. |
 | `git_config` | `git_config` | `git_config` | Lists config entries from `git config --list`. Actions: set, unset, edit, yank. Source params: `scopes` (filter by scope). |
 | `git_remote` | `git_remote` | `git_remote` | Lists remotes from `git remote -v`. Actions: fetch, fetchPrune, yank. Preview shows `git remote show -n`. |
+| `git_worktree` | `git_worktree` | `git_worktree` | Lists worktrees from `git worktree list`. Actions: cd, remove, lock, unlock, yank. Kind params: `cdCommand` (default: `"cd"`). Preview shows path/branch/recent log. |
 
 ## Requirements
 

@@ -49,6 +49,8 @@ denops/
       main.ts
     git_remote/           — Source: runs `git remote -v`, returns remote items
       main.ts
+    git_worktree/         — Source: runs `git worktree list --porcelain`, returns worktree items
+      main.ts
   @ddu-kinds/
     git_branch/           — Kind: defines actions on branch items
       main.ts
@@ -67,6 +69,8 @@ denops/
     git_config/           — Kind: defines actions on config entries (set, unset, edit, yank)
       main.ts
     git_remote/           — Kind: defines actions on remote items (fetch, fetchPrune, yank)
+      main.ts
+    git_worktree/         — Kind: defines actions on worktree items (cd, remove, lock, unlock, yank)
       main.ts
 ```
 
@@ -92,6 +96,8 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Kind** (`@ddu-kinds/git_config`): implements ddu.vim `BaseKind`. Defines actions: `set` (prompts scope+value), `unset` (with confirm), `edit` (opens config file), `yank`.
 - **Source** (`@ddu-sources/git_remote`): implements ddu.vim `BaseSource`. Calls `git remote -v` and maps each remote (fetch entries only) into `DduItem[]` with name highlighted.
 - **Kind** (`@ddu-kinds/git_remote`): implements ddu.vim `BaseKind`. Defines actions: `fetch`, `fetchPrune`, `yank`. Provides a previewer via `git remote show -n`.
+- **Source** (`@ddu-sources/git_worktree`): implements ddu.vim `BaseSource`. Calls `git worktree list --porcelain` and maps each worktree into `DduItem[]` with hash/branch highlights.
+- **Kind** (`@ddu-kinds/git_worktree`): implements ddu.vim `BaseKind`. Defines actions: `cd`, `remove` (with confirm), `lock`, `unlock`, `yank`. Params: `cdCommand` (default: `"cd"`). Preview shows path, branch, recent commits.
 - **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`.
 - **Utils** (`@ddu-git-utils/git.ts`): provides `runGit` to execute git commands via `Deno.Command`. Shared across all kinds.
 

@@ -16,6 +16,7 @@ type Params = {
   highlights: {
     current: string;
     remote: string;
+    worktree: string;
   };
 };
 
@@ -34,7 +35,7 @@ export class Source extends BaseSource<Params> {
 
         const cmdArgs = [
           "branch",
-          "--format=%(HEAD)%(refname:short)\t%(refname)\t%(symref)",
+          "--format=%(HEAD)\t%(refname)\t%(symref)\t%(worktreepath)",
           ...args.sourceParams.args,
         ];
 
@@ -53,34 +54,60 @@ export class Source extends BaseSource<Params> {
           return;
         }
 
-        const output = new TextDecoder().decode(stdout).trim();
-        if (output === "") {
+        // Do NOT trim() the whole output: %(HEAD) for a non-current branch is a
+        // single space character, so trimming would strip the leading " \t" of
+        // the first line and break field parsing.
+        const rawOutput = new TextDecoder().decode(stdout);
+        const lines = rawOutput.split("\n").filter((line) => line !== "");
+        if (lines.length === 0) {
           controller.close();
           return;
         }
 
         const enc = new TextEncoder();
-        const { current: currentHlGroup, remote: remoteHlGroup } =
-          args.sourceParams.highlights;
+        const {
+          current: currentHlGroup,
+          remote: remoteHlGroup,
+          worktree: worktreeHlGroup,
+        } = args.sourceParams.highlights;
 
-        const lines = output.split("\n");
         const items: Item<ActionData>[] = lines
-          .filter((line) => line !== "")
           .flatMap((line) => {
-            const [refLine, refname, symref] = line.split("\t");
+            // Use %(refname) instead of %(refname:short) to avoid ambiguity
+            // when a local branch name conflicts with a remote-tracking branch.
+            const [head, refname, symref, worktreePath] = line.split("\t");
+            if (!refname) return [];
             if (symref) return [];
-            const match = refLine.match(/^(\*)?\s*(.+)$/);
-            if (!match) return [];
-            const isCurrent = match[1] === "*";
-            const branch = match[2];
-            const isRemote = refname?.startsWith("refs/remotes/") ?? false;
-            const display = isCurrent ? `* ${branch}` : `  ${branch}`;
+            // %(HEAD): '*' for current branch, ' ' for everything else
+            // (%(worktreepath) is the reliable way to detect linked-worktree branches)
+            const isCurrent = head === "*";
+            const isRemote = refname.startsWith("refs/remotes/");
+            // Strip standard ref prefixes for display
+            const branch = refname.startsWith("refs/heads/")
+              ? refname.slice("refs/heads/".length)
+              : refname.startsWith("refs/remotes/")
+              ? refname.slice("refs/remotes/".length)
+              : refname;
+            // Detect branches checked out in a linked worktree via %(worktreepath)
+            const isWorktree = !isCurrent && (worktreePath ?? "") !== "";
+            const display = isCurrent
+              ? `* ${branch}`
+              : isWorktree
+              ? `+ ${branch}`
+              : `  ${branch}`;
 
             const highlights: ItemHighlight[] = [];
             if (isCurrent) {
               highlights.push({
                 name: "git_branch-current",
                 hl_group: currentHlGroup,
+                col: 1,
+                width: enc.encode(display).length,
+              });
+            } else if (isWorktree) {
+              highlights.push({
+                name: "git_branch-worktree",
+                hl_group: worktreeHlGroup,
                 col: 1,
                 width: enc.encode(display).length,
               });
@@ -97,7 +124,7 @@ export class Source extends BaseSource<Params> {
               word: branch,
               display,
               highlights,
-              action: { branch, cwd, isCurrent, text: branch },
+              action: { branch, cwd, isCurrent, isWorktree, text: branch },
             }];
           });
 
@@ -114,6 +141,7 @@ export class Source extends BaseSource<Params> {
       highlights: {
         current: "Statement",
         remote: "Comment",
+        worktree: "Special",
       },
     };
   }
