@@ -1,0 +1,77 @@
+*ddu-source-git_functions.txt*	Vimscript utility functions for ddu-source-git
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_functions-contents*
+
+Introduction		|ddu-source-git_functions-introduction|
+Functions		|ddu-source-git_functions|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_functions-introduction*
+
+ddu-source-git provides Vimscript autoload functions for retrieving common git
+repository information synchronously. These functions are independent of
+denops.vim and can be used anywhere Vimscript is available, such as
+statuslines, tablines, or plugin configurations.
+
+
+==============================================================================
+FUNCTIONS					*ddu-source-git_functions*
+
+All functions accept an optional |{cwd}| argument. When omitted, the directory
+of the current buffer (`%:p:h`) is used, falling back to |getcwd()| when no
+buffer path is available. Functions return an empty string when executed
+outside a git repository or when an error occurs.
+
+						*ddu_source_git#head()*
+ddu_source_git#head([{cwd}])
+		Return the current branch name. When in detached HEAD state,
+		returns the short commit hash instead.
+
+		Examples: >
+			:echo ddu_source_git#head()
+			" main
+			:echo ddu_source_git#head('/path/to/repo')
+			" feature/foo
+<
+						*ddu_source_git#hash()*
+ddu_source_git#hash([{cwd}])
+		Return the full 40-character commit hash of HEAD.
+
+		Examples: >
+			:echo ddu_source_git#hash()
+			" a1b2c3d4e5f6789...
+<
+						*ddu_source_git#toplevel()*
+ddu_source_git#toplevel([{cwd}])
+		Return the absolute path of the repository root.
+
+		Examples: >
+			:echo ddu_source_git#toplevel()
+			" /Users/kmnk/work/ddu-source-git
+<
+						*ddu_source_git#repo()*
+ddu_source_git#repo([{cwd}])
+		Return the repository name (the directory name of |toplevel|).
+
+		Examples: >
+			:echo ddu_source_git#repo()
+			" ddu-source-git
+<
+						*ddu_source_git#remote_repo()*
+ddu_source_git#remote_repo([{cwd}])
+		Return the full repository name in `owner/repo` format, derived
+		from the URL of the `origin` remote. Supports HTTPS, SSH URL,
+		and SCP-like SSH formats. Returns an empty string when no
+		`origin` remote is configured.
+
+		Examples: >
+			:echo ddu_source_git#remote_repo()
+			" kmnk/ddu-source-git
+<
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
