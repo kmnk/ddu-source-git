@@ -53,6 +53,8 @@ denops/
       main.ts
     git_grep/             — Source: runs `git grep -n --column`, returns match items
       main.ts
+    git_submodule/        — Source: runs `git submodule status`, returns submodule items
+      main.ts
   @ddu-kinds/
     git_branch/           — Kind: defines actions on branch items
       main.ts
@@ -75,6 +77,8 @@ denops/
     git_worktree/         — Kind: defines actions on worktree items (cd, remove, lock, unlock, yank)
       main.ts
     git_grep/             — Kind: defines actions on grep match items (open, tabopen, yank)
+      main.ts
+    git_submodule/        — Kind: defines actions on submodule items (open, update, init, deinit, yank)
       main.ts
 ```
 
@@ -104,6 +108,8 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Kind** (`@ddu-kinds/git_worktree`): implements ddu.vim `BaseKind`. Defines actions: `cd`, `remove` (with confirm), `lock`, `unlock`, `yank`. Params: `cdCommand` (default: `"cd"`). Preview shows path, branch, recent commits.
 - **Source** (`@ddu-sources/git_grep`): implements ddu.vim `BaseSource`. Calls `git grep -n --column` and maps each match into `DduItem[]`. Params: `pattern` (empty string prompts via `fn.input`), `rev`, `args`.
 - **Kind** (`@ddu-kinds/git_grep`): implements ddu.vim `BaseKind`. Defines actions: `open` (edit at matched line/col), `tabopen`, `yank`.
+- **Source** (`@ddu-sources/git_submodule`): implements ddu.vim `BaseSource`. Calls `git submodule status` and maps each submodule into `DduItem[]` with status/hash highlights.
+- **Kind** (`@ddu-kinds/git_submodule`): implements ddu.vim `BaseKind`. Defines actions: `open` (cd into submodule path), `update` (init+update), `init`, `deinit` (with confirm), `yank`. Params: `cdCommand` (default: `"cd"`). Preview shows path/hash/status and recent commits.
 - **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`.
 - **Utils** (`@ddu-git-utils/git.ts`): provides `runGit` to execute git commands via `Deno.Command`. Shared across all kinds.
 
