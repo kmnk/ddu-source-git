@@ -60,6 +60,14 @@ export class Kind extends BaseKind<Params> {
         for (const item of args.items) {
           const action = item?.action as ActionData;
 
+          if (action.isLocked) {
+            await echoErr(
+              args.denops,
+              `Cannot remove locked worktree "${action.worktreePath}". Unlock it first.`,
+            );
+            return ActionFlags.Persist;
+          }
+
           const confirm = await fn.confirm(
             args.denops,
             `Remove worktree "${action.worktreePath}"?`,
