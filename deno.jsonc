@@ -36,6 +36,8 @@
     "./denops/@ddu-sources/git_grep",
     "./denops/@ddu-kinds/git_grep",
     "./denops/@ddu-sources/git_submodule",
-    "./denops/@ddu-kinds/git_submodule"
+    "./denops/@ddu-kinds/git_submodule",
+    "./denops/@ddu-sources/git_blame",
+    "./denops/@ddu-kinds/git_blame"
   ]
 }

@@ -55,6 +55,8 @@ denops/
       main.ts
     git_submodule/        — Source: runs `git submodule status`, returns submodule items
       main.ts
+    git_blame/            — Source: runs `git blame --line-porcelain`, returns per-line blame items
+      main.ts
   @ddu-kinds/
     git_branch/           — Kind: defines actions on branch items
       main.ts
@@ -79,6 +81,8 @@ denops/
     git_grep/             — Kind: defines actions on grep match items (open, tabopen, yank)
       main.ts
     git_submodule/        — Kind: defines actions on submodule items (open, update, init, deinit, yank)
+      main.ts
+    git_blame/            — Kind: defines actions on blame items (open, tabopen, showCommit, yank)
       main.ts
 ```
 
@@ -110,6 +114,8 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Kind** (`@ddu-kinds/git_grep`): implements ddu.vim `BaseKind`. Defines actions: `open` (edit at matched line/col), `tabopen`, `yank`.
 - **Source** (`@ddu-sources/git_submodule`): implements ddu.vim `BaseSource`. Calls `git submodule status` and maps each submodule into `DduItem[]` with status/hash highlights.
 - **Kind** (`@ddu-kinds/git_submodule`): implements ddu.vim `BaseKind`. Defines actions: `open` (cd into submodule path), `update` (init+update), `init`, `deinit` (with confirm), `yank`. Params: `cdCommand` (default: `"cd"`). Preview shows path/hash/status and recent commits.
+- **Source** (`@ddu-sources/git_blame`): implements ddu.vim `BaseSource`. Calls `git blame --line-porcelain` and maps each line into `DduItem[]` with hash/date/lineNr highlights. Params: `file` (empty = current buffer), `rev`, `args`.
+- **Kind** (`@ddu-kinds/git_blame`): implements ddu.vim `BaseKind`. Defines actions: `open` (edit at blamed line), `tabopen`, `showCommit` (nofile buffer with commit details, skips uncommitted lines), `yank`. Preview shows commit info for committed lines.
 - **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`.
 - **Utils** (`@ddu-git-utils/git.ts`): provides `runGit` to execute git commands via `Deno.Command`. Shared across all kinds.
 
