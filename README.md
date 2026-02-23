@@ -22,6 +22,22 @@ ddu sources and kinds for Git operations
 | `git_submodule` | `git_submodule` | `git_submodule` | Lists submodules from `git submodule status`. Actions: open (cd), add, update, init, deinit, delete, yank. Kind params: `cdCommand` (default: `"cd"`). Preview shows path/hash/status and recent log. |
 | `git_blame` | `git_blame` | `git_blame` | Shows per-line blame from `git blame`. Actions: open, tabopen, showCommit, yank. Source params: `file` (empty = current buffer), `rev`, `args`. Preview shows commit info. |
 
+## Vimscript Functions
+
+Synchronous utility functions that work without denops.vim. Useful in
+statuslines, tablines, and other contexts requiring immediate values.
+
+| Function | Returns |
+|----------|---------|
+| `ddu_source_git#head([cwd])` | Current branch name, or short hash when detached HEAD |
+| `ddu_source_git#hash([cwd])` | Full 40-character commit hash of HEAD |
+| `ddu_source_git#toplevel([cwd])` | Absolute path of the repository root |
+| `ddu_source_git#repo([cwd])` | Repository name (directory name of toplevel) |
+| `ddu_source_git#remote_repo([cwd])` | Full `owner/repo` name from `origin` remote URL |
+
+All functions return an empty string outside a git repository. `cwd` defaults
+to the current buffer's directory.
+
 ## Requirements
 
 - [Deno](https://deno.land/) — TypeScript runtime
