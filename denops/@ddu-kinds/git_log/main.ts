@@ -1,4 +1,3 @@
-import type { Denops } from "@denops/std";
 import {
   ActionFlags,
   type Actions,
@@ -7,6 +6,7 @@ import {
 import { BaseKind, type GetPreviewerArguments } from "@shougo/ddu-vim/kind";
 import { WordActions } from "@shougo/ddu-kind-word";
 import * as fn from "@denops/std/function";
+import { combineOutput, openNofileBuffer } from "@kmnk/ddu-git-utils/action";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { runGit } from "@kmnk/ddu-git-utils/git";
 
@@ -21,20 +21,6 @@ export type ActionData = {
 };
 
 type Params = Record<string, never>;
-
-async function openNofileBuffer(
-  denops: Denops,
-  lines: string[],
-  filetype?: string,
-): Promise<void> {
-  await denops.cmd("new");
-  await denops.cmd(
-    `setlocal buftype=nofile bufhidden=wipe noswapfile${
-      filetype ? ` filetype=${filetype}` : ""
-    }`,
-  );
-  await fn.setline(denops, 1, lines);
-}
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {
@@ -205,13 +191,15 @@ export class Kind extends BaseKind<Params> {
           (items[0]?.action as ActionData).cwd,
         );
         if (!success) {
-          const combined = [out, err].filter((s) => s !== "").join("\n");
-          await openNofileBuffer(args.denops, combined.split("\n"));
+          await openNofileBuffer(
+            args.denops,
+            combineOutput(out, err).split("\n"),
+          );
           return ActionFlags.None;
         }
         await echoLog(
           args.denops,
-          [out, err].filter((s) => s !== "").join("\n"),
+          combineOutput(out, err),
         );
 
         return ActionFlags.None;
@@ -241,13 +229,15 @@ export class Kind extends BaseKind<Params> {
             action.cwd,
           );
           if (!success) {
-            const combined = [out, err].filter((s) => s !== "").join("\n");
-            await openNofileBuffer(args.denops, combined.split("\n"));
+            await openNofileBuffer(
+              args.denops,
+              combineOutput(out, err).split("\n"),
+            );
             return ActionFlags.None;
           }
           await echoLog(
             args.denops,
-            [out, err].filter((s) => s !== "").join("\n"),
+            combineOutput(out, err),
           );
         }
 
@@ -318,7 +308,7 @@ export class Kind extends BaseKind<Params> {
           }
           await echoLog(
             args.denops,
-            [out, err].filter((s) => s !== "").join("\n"),
+            combineOutput(out, err),
           );
         }
 

@@ -1,0 +1,125 @@
+*ddu-source-git_remote.txt*	Git remote source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_remote-contents*
+
+Introduction		|ddu-source-git_remote-introduction|
+Install			|ddu-source-git_remote-install|
+Source			|ddu-source-git_remote-source|
+  Params		|ddu-source-git_remote-source-params|
+Kind			|ddu-kind-git_remote|
+  Actions		|ddu-kind-git_remote-actions|
+  Preview		|ddu-kind-git_remote-preview|
+Examples		|ddu-source-git_remote-examples|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_remote-introduction*
+
+This source collects git remotes and lists them in ddu.vim.
+Each item represents one remote with its name and fetch URL.
+The accompanying kind provides actions to operate on remotes.
+
+
+==============================================================================
+INSTALL					*ddu-source-git_remote-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE					*ddu-source-git_remote-source*
+
+git_remote
+		Collects remotes from `git remote -v` output.
+		Only fetch entries are shown (one item per remote).
+		Each item displays the remote name followed by the URL
+		(e.g. `origin                git@github.com:user/repo.git`).
+
+		`item.word` is `"<name>  <url>"`.
+		`item.action.text` is the remote URL (used for yank).
+
+		Highlights applied per item:
+
+		  git_remote-name   The remote name.
+		                    Highlight group: "Identifier"
+
+			*ddu-source-git_remote-source-params*
+PARAMS ~
+
+args		(string[])
+		Additional arguments passed to `git remote -v`.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+
+==============================================================================
+KIND					*ddu-kind-git_remote*
+
+git_remote
+		Kind for git remote items. Provides remote operations.
+
+			*ddu-kind-git_remote-actions*
+ACTIONS ~
+
+yank
+		Yank the remote URL to the unnamed register.
+
+fetch
+		Fetch from the selected remote (`git fetch <name>`).
+
+fetchPrune
+		Fetch from the selected remote and prune deleted branches
+		(`git fetch --prune <name>`).
+
+			*ddu-kind-git_remote-preview*
+PREVIEW ~
+
+		Selecting an item displays remote information in the preview
+		window (`git remote show -n <name>`). The `-n` flag avoids
+		network calls during preview.
+
+
+==============================================================================
+EXAMPLES				*ddu-source-git_remote-examples*
+
+>vim
+	" Basic usage
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_remote'}],
+	  \ })
+
+	" Set default action to fetch
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_remote: #{
+	  \       defaultAction: 'fetch',
+	  \     },
+	  \   },
+	  \ })
+
+	" Show preview automatically on cursor move
+	call ddu#custom#patch_local('git_remote', #{
+	  \   uiParams: #{
+	  \     ff: #{
+	  \       autoAction: #{name: 'preview'},
+	  \       startAutoAction: v:true,
+	  \     },
+	  \   },
+	  \ })
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

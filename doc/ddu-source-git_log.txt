@@ -57,7 +57,7 @@ git_log
 		  git_log-hash    The abbreviated commit hash.
 		                  Uses |highlights.hash|.
 
-				*ddu-source-git_log-source-params*
+			*ddu-source-git_log-source-params*
 PARAMS ~
 
 args		(string[])
@@ -99,7 +99,7 @@ git_log
 		`item.action.text` holds the full commit hash and is used
 		as the yank target.
 
-				*ddu-kind-git_log-actions*
+			*ddu-kind-git_log-actions*
 ACTIONS ~
 
 yank
@@ -119,6 +119,22 @@ createBranch
 		selected commit with `git switch -c <name> <hash>`.
 		Empty input cancels the action.
 
+cherryPick
+		Apply the selected commit(s) to the current branch with
+		`git cherry-pick`. Multiple selections are applied oldest
+		first. On failure, the combined stdout/stderr is shown in
+		a scratch buffer.
+
+revert
+		Revert the selected commit with `git revert --no-edit` after
+		confirmation. On failure, the combined stdout/stderr is shown
+		in a scratch buffer.
+
+tag
+		Prompt for a tag name, then create a tag at the selected
+		commit with `git tag <name> <hash>`.
+		Empty input cancels the action.
+
 diff
 		Show a diff in a new scratch buffer with `filetype=diff`.
 
@@ -136,7 +152,12 @@ files
 		Each item represents one changed file with its status code.
 		Available actions on each file: `open`, `tabopen`, `yank`.
 
-				*ddu-kind-git_log-preview*
+addWorktree
+		Create a new worktree at the selected commit. Prompts for a
+		branch name (empty for detached HEAD) and a path, then runs
+		`git worktree add [-b <branch>|--detach] <path> <hash>`.
+
+			*ddu-kind-git_log-preview*
 PREVIEW ~
 
 		Selecting an item displays a commit summary in the preview

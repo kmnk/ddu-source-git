@@ -1,0 +1,143 @@
+*ddu-source-git_tag.txt*	Git tag source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_tag-contents*
+
+Introduction		|ddu-source-git_tag-introduction|
+Install			|ddu-source-git_tag-install|
+Source			|ddu-source-git_tag-source|
+  Params		|ddu-source-git_tag-source-params|
+Kind			|ddu-kind-git_tag|
+  Actions		|ddu-kind-git_tag-actions|
+  Preview		|ddu-kind-git_tag-preview|
+Examples		|ddu-source-git_tag-examples|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_tag-introduction*
+
+This source collects git tags and lists them in ddu.vim.
+Each item represents one tag with its name and subject line (for annotated
+tags). Tags are sorted newest-first by version (`-version:refname`).
+The accompanying kind provides actions to operate on tags.
+
+
+==============================================================================
+INSTALL					*ddu-source-git_tag-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE					*ddu-source-git_tag-source*
+
+git_tag
+		Collects tags from `git tag -l --sort=-version:refname`
+		output. Annotated tags additionally display their subject
+		line.
+
+		`item.word` is the tag name.
+		`item.display` is `"<tagName>  <subject>"` for annotated
+		tags, or just `"<tagName>"` for lightweight tags.
+
+		Highlights applied per item:
+
+		  git_tag-tagName   The tag name.
+		                    Uses |highlights.tagName|.
+
+			*ddu-source-git_tag-source-params*
+PARAMS ~
+
+args		(string[])
+		Additional arguments passed to `git tag -l`.
+		For example, ["v1.*"] to filter tags by pattern.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+highlights	(object)
+		Highlight group names for tag display.
+
+		highlights.tagName  (string)
+			Highlight applied to the tag name.
+			Default: "Identifier"
+
+
+==============================================================================
+KIND					*ddu-kind-git_tag*
+
+git_tag
+		Kind for git tag items. Provides tag operations.
+
+			*ddu-kind-git_tag-actions*
+ACTIONS ~
+
+yank
+		Yank the tag name to the unnamed register.
+
+checkout
+		Checkout the selected tag in detached HEAD state
+		(`git checkout <tagName>`).
+
+createBranch
+		Prompt for a branch name, then create a new branch from the
+		selected tag (`git switch -c <name> <tagName>`).
+		Empty input cancels the action.
+
+delete
+		Delete the selected tag after confirmation
+		(`git tag -d <tagName>`). Refreshes the ddu list on success.
+
+diff
+		Show `git diff <tagName>` (diff between the tag and the
+		working tree) in a new scratch buffer with `filetype=diff`.
+
+			*ddu-kind-git_tag-preview*
+PREVIEW ~
+
+		Selecting an item displays tag information in the preview
+		window (`git show --no-patch <tagName>`), showing the tag
+		annotation for annotated tags or the commit info for
+		lightweight tags.
+
+
+==============================================================================
+EXAMPLES				*ddu-source-git_tag-examples*
+
+>vim
+	" Basic usage
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_tag'}],
+	  \ })
+
+	" Filter tags matching a pattern
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_tag',
+	  \     params: #{args: ['v1.*']},
+	  \   }],
+	  \ })
+
+	" Set default action to checkout
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_tag: #{
+	  \       defaultAction: 'checkout',
+	  \     },
+	  \   },
+	  \ })
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

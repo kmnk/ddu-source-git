@@ -1,0 +1,167 @@
+*ddu-source-git_grep.txt*	Git grep source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_grep-contents*
+
+Introduction		|ddu-source-git_grep-introduction|
+Install			|ddu-source-git_grep-install|
+Source			|ddu-source-git_grep-source|
+  Params		|ddu-source-git_grep-source-params|
+Kind			|ddu-kind-git_grep|
+  Actions		|ddu-kind-git_grep-actions|
+Examples		|ddu-source-git_grep-examples|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_grep-introduction*
+
+This source searches git-tracked files using `git grep` and lists matches
+in ddu.vim. Each item represents one match with its file path, line number,
+column, and matched line content.
+The accompanying kind provides actions to open matched files.
+
+
+==============================================================================
+INSTALL					*ddu-source-git_grep-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE					*ddu-source-git_grep-source*
+
+git_grep
+		Searches git-tracked files with
+		`git --no-pager grep -n --column --no-color`.
+		Each item displays the file path, line number, column, and
+		matched line content (e.g. `src/foo.ts:10:5: let x = 1`).
+
+		If `pattern` param is empty, prompts for input via
+		`vim.fn.input()` before searching.
+
+		`item.word` is `"<path>:<lineNum>"`.
+
+		Highlights applied per item:
+
+		  git_grep-path     The file path.
+		                    Uses |highlights.path|.
+		  git_grep-line-nr  The line number.
+		                    Uses |highlights.lineNr|.
+
+			*ddu-source-git_grep-source-params*
+PARAMS ~
+
+pattern		(string)
+		The search pattern passed to `git grep -e`.
+		If empty, the user is prompted for input when the source
+		is gathered.
+		Default: ""
+
+rev		(string)
+		Git revision to search (e.g. `"HEAD"`, `"main"`).
+		If empty, searches the working tree.
+		Default: ""
+
+args		(string[])
+		Additional arguments passed to `git grep`.
+		For example, ["-i"] for case-insensitive search,
+		or ["--", "*.ts"] to restrict to TypeScript files.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+highlights	(object)
+		Highlight group names for grep result display.
+
+		highlights.path    (string)
+			Highlight applied to the file path.
+			Default: "Directory"
+
+		highlights.lineNr  (string)
+			Highlight applied to the line number.
+			Default: "LineNr"
+
+
+==============================================================================
+KIND					*ddu-kind-git_grep*
+
+git_grep
+		Kind for git grep items. Provides file open operations.
+
+			*ddu-kind-git_grep-actions*
+ACTIONS ~
+
+yank
+		Yank the matched line text to the unnamed register.
+
+open
+		Open the file at the matched line and column in the current
+		window with `:edit +<line>`.
+
+tabopen
+		Open the file at the matched line and column in a new tab
+		with `:tabedit +<line>`.
+
+
+==============================================================================
+EXAMPLES				*ddu-source-git_grep-examples*
+
+>vim
+	" Basic usage (prompts for pattern)
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_grep'}],
+	  \ })
+
+	" Search for a specific pattern
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_grep',
+	  \     params: #{pattern: 'TODO'},
+	  \   }],
+	  \ })
+
+	" Search in a specific revision
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_grep',
+	  \     params: #{
+	  \       pattern: 'function',
+	  \       rev: 'HEAD~1',
+	  \     },
+	  \   }],
+	  \ })
+
+	" Case-insensitive search restricted to TypeScript files
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_grep',
+	  \     params: #{
+	  \       pattern: 'export',
+	  \       args: ['-i', '--', '*.ts'],
+	  \     },
+	  \   }],
+	  \ })
+
+	" Set default action to open
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_grep: #{
+	  \       defaultAction: 'open',
+	  \     },
+	  \   },
+	  \ })
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

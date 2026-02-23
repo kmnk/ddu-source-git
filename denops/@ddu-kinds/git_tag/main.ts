@@ -1,4 +1,3 @@
-import type { Denops } from "@denops/std";
 import {
   ActionFlags,
   type Actions,
@@ -7,6 +6,7 @@ import {
 import { BaseKind, type GetPreviewerArguments } from "@shougo/ddu-vim/kind";
 import { WordActions } from "@shougo/ddu-kind-word";
 import * as fn from "@denops/std/function";
+import { openNofileBuffer } from "@kmnk/ddu-git-utils/action";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { runGit } from "@kmnk/ddu-git-utils/git";
 
@@ -19,20 +19,6 @@ export type ActionData = {
 };
 
 type Params = Record<string, never>;
-
-async function openNofileBuffer(
-  denops: Denops,
-  lines: string[],
-  filetype?: string,
-): Promise<void> {
-  await denops.cmd("new");
-  await denops.cmd(
-    `setlocal buftype=nofile bufhidden=wipe noswapfile${
-      filetype ? ` filetype=${filetype}` : ""
-    }`,
-  );
-  await fn.setline(denops, 1, lines);
-}
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {

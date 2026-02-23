@@ -10,6 +10,7 @@ Install			|ddu-source-git_branch-install|
 Source			|ddu-source-git_branch-source|
   Params		|ddu-source-git_branch-source-params|
 Kind			|ddu-kind-git_branch|
+  Params		|ddu-kind-git_branch-params|
   Actions		|ddu-kind-git_branch-actions|
 Examples		|ddu-source-git_branch-examples|
 
@@ -38,8 +39,10 @@ SOURCE					*ddu-source-git_branch-source*
 git_branch
 		Collects branches from `git branch` output.
 		The current branch is marked with "*" prefix.
+		Branches checked out in a linked worktree are marked
+		with "+" prefix.
 
-					*ddu-source-git_branch-source-params*
+				*ddu-source-git_branch-source-params*
 PARAMS ~
 
 args		(string[])
@@ -64,6 +67,11 @@ highlights	(object)
 			Highlight applied to remote branch names.
 			Default: "Comment"
 
+		highlights.worktree (string)
+			Highlight applied to branches checked out in a
+			linked worktree (displayed with "+" prefix).
+			Default: "Special"
+
 
 ==============================================================================
 KIND					*ddu-kind-git_branch*
@@ -71,7 +79,14 @@ KIND					*ddu-kind-git_branch*
 git_branch
 		Kind for git branch items. Provides branch operations.
 
-					*ddu-kind-git_branch-actions*
+				*ddu-kind-git_branch-params*
+PARAMS ~
+
+remote		(string)
+		The remote name used for push, pushForce, and fetch actions.
+		Default: "origin"
+
+				*ddu-kind-git_branch-actions*
 ACTIONS ~
 
 yank
@@ -112,6 +127,29 @@ copy
 		Prompt for a new name and copy the selected branch with
 		`git branch -c`. Refreshes the ddu list on success.
 
+merge
+		Merge the selected branch into the current branch with
+		`git merge`. Requires confirmation. On failure, the combined
+		stdout/stderr is shown in a scratch buffer.
+
+push
+		Push the selected branch to the remote specified by the
+		`remote` kind param (`git push <remote> <branch>`).
+
+pushForce
+		Force-push the selected branch with `--force-with-lease`
+		to the remote specified by the `remote` kind param.
+		Requires confirmation.
+
+fetch
+		Fetch the selected branch from the remote specified by the
+		`remote` kind param (`git fetch <remote> <branch>`).
+
+addWorktree
+		Create a new worktree for the selected branch.
+		Prompts for a path, then runs
+		`git worktree add <path> <branch>`.
+
 
 ==============================================================================
 EXAMPLES				*ddu-source-git_branch-examples*
@@ -135,6 +173,15 @@ EXAMPLES				*ddu-source-git_branch-examples*
 	  \   kindOptions: #{
 	  \     git_branch: #{
 	  \       defaultAction: 'switch',
+	  \     },
+	  \   },
+	  \ })
+
+	" Set remote for push/fetch
+	call ddu#custom#patch_global(#{
+	  \   kindParams: #{
+	  \     git_branch: #{
+	  \       remote: 'upstream',
 	  \     },
 	  \   },
 	  \ })

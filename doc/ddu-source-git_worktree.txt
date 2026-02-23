@@ -1,0 +1,152 @@
+*ddu-source-git_worktree.txt*	Git worktree source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_worktree-contents*
+
+Introduction		|ddu-source-git_worktree-introduction|
+Install			|ddu-source-git_worktree-install|
+Source			|ddu-source-git_worktree-source|
+  Params		|ddu-source-git_worktree-source-params|
+Kind			|ddu-kind-git_worktree|
+  Params		|ddu-kind-git_worktree-params|
+  Actions		|ddu-kind-git_worktree-actions|
+  Preview		|ddu-kind-git_worktree-preview|
+Examples		|ddu-source-git_worktree-examples|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_worktree-introduction*
+
+This source collects git worktrees and lists them in ddu.vim.
+Each item represents one worktree with its short hash, branch name, and
+path. Bare and locked worktrees are annotated in the display.
+The accompanying kind provides actions to operate on worktrees.
+
+
+==============================================================================
+INSTALL					*ddu-source-git_worktree-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE					*ddu-source-git_worktree-source*
+
+git_worktree
+		Collects worktrees from `git worktree list --porcelain`
+		output. Each item displays the short hash, branch name
+		(or "(detached)"), and path. Bare and locked states are
+		shown in brackets (e.g. `[bare]`, `[locked]`).
+
+		`item.word` is `"<branch>  <path>"`.
+		`item.action.text` is the worktree path (used for yank).
+
+		Highlights applied per item:
+
+		  git_worktree-hash    The abbreviated HEAD hash.
+		                       Highlight group: "Identifier"
+		  git_worktree-branch  The branch name.
+		                       Highlight group: "Special"
+
+			*ddu-source-git_worktree-source-params*
+PARAMS ~
+
+args		(string[])
+		Additional arguments passed to `git worktree list`.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+
+==============================================================================
+KIND					*ddu-kind-git_worktree*
+
+git_worktree
+		Kind for git worktree items. Provides worktree operations.
+
+			*ddu-kind-git_worktree-params*
+PARAMS ~
+
+cdCommand	(string)
+		The Vim command used to change directory in the `cd` action.
+		Common values: "cd" (global), "lcd" (window-local),
+		"tcd" (tab-local).
+		Default: "cd"
+
+			*ddu-kind-git_worktree-actions*
+ACTIONS ~
+
+yank
+		Yank the worktree path to the unnamed register.
+
+cd
+		Change the current directory to the worktree path using
+		the command specified by the `cdCommand` kind param.
+
+remove
+		Remove the worktree after confirmation
+		(`git worktree remove <path>`). Locked worktrees cannot
+		be removed — unlock them first.
+		Refreshes the ddu list on success.
+
+lock
+		Lock the worktree (`git worktree lock <path>`).
+		Refreshes the ddu list on success.
+
+unlock
+		Unlock the worktree (`git worktree unlock <path>`).
+		Refreshes the ddu list on success.
+
+			*ddu-kind-git_worktree-preview*
+PREVIEW ~
+
+		Selecting an item displays worktree information in the
+		preview window:
+		  - path
+		  - HEAD hash
+		  - branch name (or "(detached)")
+		  - bare/locked state if applicable
+		  - recent 10 commits from the worktree
+
+
+==============================================================================
+EXAMPLES				*ddu-source-git_worktree-examples*
+
+>vim
+	" Basic usage
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_worktree'}],
+	  \ })
+
+	" Set default action to cd
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_worktree: #{
+	  \       defaultAction: 'cd',
+	  \     },
+	  \   },
+	  \ })
+
+	" Use tab-local cd
+	call ddu#custom#patch_global(#{
+	  \   kindParams: #{
+	  \     git_worktree: #{
+	  \       cdCommand: 'tcd',
+	  \     },
+	  \   },
+	  \ })
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

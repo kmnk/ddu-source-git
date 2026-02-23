@@ -19,7 +19,7 @@ ddu sources and kinds for Git operations
 | `git_remote` | `git_remote` | `git_remote` | Lists remotes from `git remote -v`. Actions: fetch, fetchPrune, yank. Preview shows `git remote show -n`. |
 | `git_worktree` | `git_worktree` | `git_worktree` | Lists worktrees from `git worktree list`. Actions: cd, remove, lock, unlock, yank. Kind params: `cdCommand` (default: `"cd"`). Preview shows path/branch/recent log. |
 | `git_grep` | `git_grep` | `git_grep` | Searches git-tracked files with `git grep`. Actions: open, tabopen, yank. Source params: `pattern` (empty prompts input), `rev`, `args`. |
-| `git_submodule` | `git_submodule` | `git_submodule` | Lists submodules from `git submodule status`. Actions: open (cd), update, init, deinit, yank. Kind params: `cdCommand` (default: `"cd"`). Preview shows path/hash/status and recent log. |
+| `git_submodule` | `git_submodule` | `git_submodule` | Lists submodules from `git submodule status`. Actions: open (cd), add, update, init, deinit, delete, yank. Kind params: `cdCommand` (default: `"cd"`). Preview shows path/hash/status and recent log. |
 | `git_blame` | `git_blame` | `git_blame` | Shows per-line blame from `git blame`. Actions: open, tabopen, showCommit, yank. Source params: `file` (empty = current buffer), `rev`, `args`. Preview shows commit info. |
 
 ## Requirements

@@ -1,0 +1,157 @@
+*ddu-source-git_config.txt*	Git config source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_config-contents*
+
+Introduction		|ddu-source-git_config-introduction|
+Install			|ddu-source-git_config-install|
+Source			|ddu-source-git_config-source|
+  Params		|ddu-source-git_config-source-params|
+Kind			|ddu-kind-git_config|
+  Actions		|ddu-kind-git_config-actions|
+Examples		|ddu-source-git_config-examples|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_config-introduction*
+
+This source collects git configuration entries and lists them in ddu.vim.
+Each item represents one config entry with its scope, key, and value.
+The accompanying kind provides actions to operate on config entries.
+
+
+==============================================================================
+INSTALL					*ddu-source-git_config-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE					*ddu-source-git_config-source*
+
+git_config
+		Collects config entries from
+		`git config --list --show-scope --show-origin` output.
+		Each item displays the scope, key, and value
+		(e.g. `local     user.name=kmnk`).
+
+		`item.word` is `"<key>=<value>"`.
+		`item.display` includes the scope prepended.
+
+		Highlights applied per item:
+
+		  git_config-scope   The scope name (local, global, system,
+		                     worktree). Highlight group depends on
+		                     the scope.
+
+			*ddu-source-git_config-source-params*
+PARAMS ~
+
+args		(string[])
+		Additional arguments passed to `git config --list`.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+scopes		(string[])
+		Filter entries by scope. Empty array shows all scopes.
+		Valid values: "local", "global", "system", "worktree".
+		Example: ["local"] shows only local config.
+		Default: []
+
+highlights	(object)
+		Highlight group names for each scope.
+
+		highlights.scopeLocal    (string)
+			Highlight for local scope entries.
+			Default: "Special"
+
+		highlights.scopeGlobal   (string)
+			Highlight for global scope entries.
+			Default: "Identifier"
+
+		highlights.scopeSystem   (string)
+			Highlight for system scope entries.
+			Default: "Comment"
+
+		highlights.scopeWorktree (string)
+			Highlight for worktree scope entries.
+			Default: "Special"
+
+
+==============================================================================
+KIND					*ddu-kind-git_config*
+
+git_config
+		Kind for git config items. Provides config operations.
+
+			*ddu-kind-git_config-actions*
+ACTIONS ~
+
+yank
+		Yank the config entry as `key=value` to the unnamed register.
+
+set
+		Set a new value for the config key. Prompts for scope
+		(local or global), then for the new value.
+		Runs `git config --<scope> <key> <value>`.
+		Refreshes the ddu list on success.
+
+unset
+		Unset the config key in its current scope after confirmation.
+		Runs `git config --<scope> --unset <key>`.
+		Refreshes the ddu list on success.
+
+edit
+		Open the config file containing the entry in a buffer.
+		Uses the file path reported by `--show-origin`.
+
+
+==============================================================================
+EXAMPLES				*ddu-source-git_config-examples*
+
+>vim
+	" Basic usage (all scopes)
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_config'}],
+	  \ })
+
+	" Show only local config
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_config',
+	  \     params: #{scopes: ['local']},
+	  \   }],
+	  \ })
+
+	" Show local and global config
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_config',
+	  \     params: #{scopes: ['local', 'global']},
+	  \   }],
+	  \ })
+
+	" Set default action to edit
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_config: #{
+	  \       defaultAction: 'edit',
+	  \     },
+	  \   },
+	  \ })
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

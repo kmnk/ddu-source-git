@@ -1,0 +1,192 @@
+*ddu-source-git_blame.txt*	Git blame source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_blame-contents*
+
+Introduction		|ddu-source-git_blame-introduction|
+Install			|ddu-source-git_blame-install|
+Source			|ddu-source-git_blame-source|
+  Params		|ddu-source-git_blame-source-params|
+Kind			|ddu-kind-git_blame|
+  Actions		|ddu-kind-git_blame-actions|
+  Preview		|ddu-kind-git_blame-preview|
+Examples		|ddu-source-git_blame-examples|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_blame-introduction*
+
+This source collects per-line blame information and lists it in ddu.vim.
+Each item represents one line with its commit hash, date, author, line
+number, and line content. Lines not yet committed are displayed with a
+zero hash.
+The accompanying kind provides actions to open the file or inspect the
+commit.
+
+
+==============================================================================
+INSTALL					*ddu-source-git_blame-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE					*ddu-source-git_blame-source*
+
+git_blame
+		Collects blame data from `git blame --line-porcelain`
+		output. Each item displays the short hash, date, author,
+		line number, and line content.
+
+		If `file` param is empty, the current buffer name is used.
+
+		`item.word` is `"<shortHash> <lineContent>"`.
+		`item.action.text` is the short hash (used for yank).
+
+		Highlights applied per item:
+
+		  git_blame-hash    The abbreviated commit hash.
+		                    Not applied for uncommitted lines.
+		                    Uses |highlights.hash|.
+		  git_blame-date    The date (`YYYY-MM-DD`).
+		                    Not applied for uncommitted lines.
+		                    Uses |highlights.date|.
+		  git_blame-line-nr The line number.
+		                    Uses |highlights.lineNr|.
+
+			*ddu-source-git_blame-source-params*
+PARAMS ~
+
+file		(string)
+		The file to blame. Relative paths are resolved from `cwd`.
+		If empty, the current buffer name is used.
+		Default: ""
+
+rev		(string)
+		Git revision to blame (e.g. `"HEAD"`, `"main"`).
+		If empty, blames the working tree.
+		Default: ""
+
+args		(string[])
+		Additional arguments passed to `git blame`.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+highlights	(object)
+		Highlight group names for blame display.
+
+		highlights.hash    (string)
+			Highlight applied to the abbreviated commit hash.
+			Default: "Identifier"
+
+		highlights.date    (string)
+			Highlight applied to the date (`YYYY-MM-DD`).
+			Default: "Comment"
+
+		highlights.lineNr  (string)
+			Highlight applied to the line number.
+			Default: "LineNr"
+
+
+==============================================================================
+KIND					*ddu-kind-git_blame*
+
+git_blame
+		Kind for git blame items. Provides file and commit
+		operations.
+
+			*ddu-kind-git_blame-actions*
+ACTIONS ~
+
+yank
+		Yank the short commit hash to the unnamed register.
+
+open
+		Open the blamed file at the corresponding line in the
+		current window with `:edit +<line>`.
+
+tabopen
+		Open the blamed file at the corresponding line in a new
+		tab with `:tabedit +<line>`.
+
+showCommit
+		Show commit details for the blamed line in a new scratch
+		buffer. Runs `git show --no-patch --format=...` on the
+		full hash. Silently skips uncommitted lines (zero hash).
+
+			*ddu-kind-git_blame-preview*
+PREVIEW ~
+
+		Selecting an item displays the commit summary in the
+		preview window (`git show --no-patch --format=...`):
+		  - full commit hash
+		  - author name and email
+		  - author date
+		  - subject and body
+
+		Preview is not shown for uncommitted lines (zero hash).
+
+
+==============================================================================
+EXAMPLES				*ddu-source-git_blame-examples*
+
+>vim
+	" Blame the current buffer
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_blame'}],
+	  \ })
+
+	" Blame a specific file at a specific revision
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_blame',
+	  \     params: #{
+	  \       file: 'src/main.ts',
+	  \       rev: 'HEAD~5',
+	  \     },
+	  \   }],
+	  \ })
+
+	" Set default action to open
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_blame: #{
+	  \       defaultAction: 'open',
+	  \     },
+	  \   },
+	  \ })
+
+	" Show preview automatically on cursor move
+	call ddu#custom#patch_local('git_blame', #{
+	  \   uiParams: #{
+	  \     ff: #{
+	  \       autoAction: #{name: 'preview'},
+	  \       startAutoAction: v:true,
+	  \     },
+	  \   },
+	  \ })
+
+	" Key mappings in ddu UI (ddu-ui-ff)
+	autocmd FileType ddu-ff call s:ddu_ff_my_settings()
+	function s:ddu_ff_my_settings() abort
+	  if b:ddu_ui_name ==# 'git_blame'
+	    nnoremap <buffer> c
+	      \ <Cmd>call ddu#ui#do_action('itemAction', #{name: 'showCommit'})<CR>
+	  endif
+	endfunction
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

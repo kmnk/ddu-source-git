@@ -1,0 +1,145 @@
+*ddu-source-git_reflog.txt*	Git reflog source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_reflog-contents*
+
+Introduction		|ddu-source-git_reflog-introduction|
+Install			|ddu-source-git_reflog-install|
+Source			|ddu-source-git_reflog-source|
+  Params		|ddu-source-git_reflog-source-params|
+Kind			|ddu-kind-git_reflog|
+  Actions		|ddu-kind-git_reflog-actions|
+  Preview		|ddu-kind-git_reflog-preview|
+Examples		|ddu-source-git_reflog-examples|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_reflog-introduction*
+
+This source collects git reflog entries and lists them in ddu.vim.
+Each item represents one reflog entry with its short hash, ref name
+(e.g. `HEAD@{0}`), action, and subject.
+The accompanying kind provides actions to operate on reflog entries.
+
+
+==============================================================================
+INSTALL					*ddu-source-git_reflog-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE					*ddu-source-git_reflog-source*
+
+git_reflog
+		Collects reflog entries from `git reflog` output.
+		Each item displays the short hash, ref name, and subject
+		(e.g. `abc1234  HEAD@{0}  commit: fix bug`).
+
+		`item.word` is the short hash.
+		`item.action.text` is the short hash (used for yank).
+
+		Highlights applied per item:
+
+		  git_reflog-hash   The abbreviated commit hash.
+		                    Uses |highlights.hash|.
+		  git_reflog-ref    The ref name (`HEAD@{N}`).
+		                    Uses |highlights.ref|.
+
+			*ddu-source-git_reflog-source-params*
+PARAMS ~
+
+args		(string[])
+		Additional arguments passed to `git reflog`.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+highlights	(object)
+		Highlight group names for reflog display.
+
+		highlights.hash  (string)
+			Highlight applied to the abbreviated commit hash.
+			Default: "Identifier"
+
+		highlights.ref   (string)
+			Highlight applied to the ref name (`HEAD@{N}`).
+			Default: "Comment"
+
+
+==============================================================================
+KIND					*ddu-kind-git_reflog*
+
+git_reflog
+		Kind for git reflog items. Provides reflog operations.
+
+			*ddu-kind-git_reflog-actions*
+ACTIONS ~
+
+yank
+		Yank the short hash to the unnamed register.
+
+reset
+		Run `git reset <fullHash>` (mixed reset) on the selected
+		entry. On failure, the error message is echoed.
+
+resetHard
+		Run `git reset --hard <fullHash>` on the selected entry
+		after confirmation. On failure, the error message is echoed.
+
+createBranch
+		Prompt for a branch name, then create a new branch at the
+		selected entry (`git switch -c <name> <fullHash>`).
+		Empty input cancels the action.
+
+			*ddu-kind-git_reflog-preview*
+PREVIEW ~
+
+		Selecting an item displays a commit summary in the preview
+		window containing:
+		  - full commit hash
+		  - author name and email
+		  - author date
+		  - subject and body
+
+
+==============================================================================
+EXAMPLES				*ddu-source-git_reflog-examples*
+
+>vim
+	" Basic usage
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_reflog'}],
+	  \ })
+
+	" Show reflog for a specific branch
+	call ddu#start(#{
+	  \   sources: [#{
+	  \     name: 'git_reflog',
+	  \     params: #{args: ['main']},
+	  \   }],
+	  \ })
+
+	" Set default action to reset
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_reflog: #{
+	  \       defaultAction: 'reset',
+	  \     },
+	  \   },
+	  \ })
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

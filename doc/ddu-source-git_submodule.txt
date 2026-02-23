@@ -1,0 +1,197 @@
+*ddu-source-git_submodule.txt*	Git submodule source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS				*ddu-source-git_submodule-contents*
+
+Introduction		|ddu-source-git_submodule-introduction|
+Install			|ddu-source-git_submodule-install|
+Source			|ddu-source-git_submodule-source|
+  Params		|ddu-source-git_submodule-source-params|
+Kind			|ddu-kind-git_submodule|
+  Params		|ddu-kind-git_submodule-params|
+  Actions		|ddu-kind-git_submodule-actions|
+  Preview		|ddu-kind-git_submodule-preview|
+Examples		|ddu-source-git_submodule-examples|
+
+
+==============================================================================
+INTRODUCTION			*ddu-source-git_submodule-introduction*
+
+This source collects git submodules and lists them in ddu.vim.
+Each item represents one submodule with its status, hash, path, and
+describe string. A header item representing the repository root is always
+present to enable actions (such as `add`) even when no submodules exist.
+The accompanying kind provides actions to operate on submodules.
+
+
+==============================================================================
+INSTALL				*ddu-source-git_submodule-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE				*ddu-source-git_submodule-source*
+
+git_submodule
+		Collects submodules from `git submodule status` output.
+		Each item displays a status character, short hash, path,
+		and describe string if available.
+
+		Status characters:
+		  ' '  up-to-date
+		  '-'  not initialized
+		  '+'  out of sync (checked out commit differs from index)
+		  'U'  merge conflict
+
+		`item.word` is the submodule path.
+
+		Highlights applied per item:
+
+		  git_submodule-status  The status character.
+		                        Uses |highlights.status|.
+		  git_submodule-hash    The abbreviated hash.
+		                        Uses |highlights.hash|.
+
+			*ddu-source-git_submodule-source-params*
+PARAMS ~
+
+args		(string[])
+		Additional arguments passed to `git submodule status`.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+highlights	(object)
+		Highlight group names for submodule display.
+
+		highlights.hash    (string)
+			Highlight applied to the abbreviated commit hash.
+			Default: "Identifier"
+
+		highlights.status  (string)
+			Highlight applied to the status character.
+			Default: "Special"
+
+
+==============================================================================
+KIND				*ddu-kind-git_submodule*
+
+git_submodule
+		Kind for git submodule items. Provides submodule operations.
+		The header item (representing the repository root) is
+		silently skipped by most actions, but enables `add`.
+
+			*ddu-kind-git_submodule-params*
+PARAMS ~
+
+cdCommand	(string)
+		The Vim command used to change directory in the `open`
+		action. Common values: "cd" (global), "lcd" (window-local),
+		"tcd" (tab-local).
+		Default: "cd"
+
+			*ddu-kind-git_submodule-actions*
+ACTIONS ~
+
+yank
+		Yank the submodule path to the unnamed register.
+		Skips the header item.
+
+open
+		Change the current directory to the submodule path using
+		the command specified by the `cdCommand` kind param.
+		Skips the header item.
+
+add
+		Add a new submodule. Prompts for a URL and an optional path,
+		then runs `git submodule add <url> [path]`.
+		Can be triggered from the header item.
+		Refreshes the ddu list on success.
+
+update
+		Initialize and update the submodule
+		(`git submodule update --init <path>`).
+		Refreshes the ddu list on success.
+
+init
+		Register the submodule in `.git/config`
+		(`git submodule init <path>`).
+		Refreshes the ddu list on success.
+
+deinit
+		Unregister the submodule after confirmation
+		(`git submodule deinit <path>`).
+		Refreshes the ddu list on success.
+
+delete
+		Completely remove the submodule after confirmation.
+		Runs `git rm <path>` to remove it from `.gitmodules`, the
+		index, and the working tree, then removes the
+		`.git/modules/<path>` directory to allow re-adding later.
+		Refreshes the ddu list on success.
+
+			*ddu-kind-git_submodule-preview*
+PREVIEW ~
+
+		Selecting an item displays submodule information in the
+		preview window:
+		  - path
+		  - hash
+		  - status (human-readable)
+		  - describe string (if available)
+		  - recent 10 commits inside the submodule (if initialized)
+
+
+==============================================================================
+EXAMPLES			*ddu-source-git_submodule-examples*
+
+>vim
+	" Basic usage
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_submodule'}],
+	  \ })
+
+	" Set default action to open (cd into submodule)
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_submodule: #{
+	  \       defaultAction: 'open',
+	  \     },
+	  \   },
+	  \ })
+
+	" Use tab-local cd
+	call ddu#custom#patch_global(#{
+	  \   kindParams: #{
+	  \     git_submodule: #{
+	  \       cdCommand: 'tcd',
+	  \     },
+	  \   },
+	  \ })
+
+	" Key mappings in ddu UI (ddu-ui-ff)
+	autocmd FileType ddu-ff call s:ddu_ff_my_settings()
+	function s:ddu_ff_my_settings() abort
+	  if b:ddu_ui_name ==# 'git_submodule'
+	    nnoremap <buffer> u
+	      \ <Cmd>call ddu#ui#do_action('itemAction', #{name: 'update'})<CR>
+	    nnoremap <buffer> a
+	      \ <Cmd>call ddu#ui#do_action('itemAction', #{name: 'add'})<CR>
+	  endif
+	endfunction
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

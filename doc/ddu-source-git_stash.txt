@@ -1,0 +1,143 @@
+*ddu-source-git_stash.txt*	Git stash source and kind for ddu.vim
+
+Author: kmnk
+License: MIT
+
+CONTENTS					*ddu-source-git_stash-contents*
+
+Introduction		|ddu-source-git_stash-introduction|
+Install			|ddu-source-git_stash-install|
+Source			|ddu-source-git_stash-source|
+  Params		|ddu-source-git_stash-source-params|
+Kind			|ddu-kind-git_stash|
+  Actions		|ddu-kind-git_stash-actions|
+  Preview		|ddu-kind-git_stash-preview|
+Examples		|ddu-source-git_stash-examples|
+
+
+==============================================================================
+INTRODUCTION				*ddu-source-git_stash-introduction*
+
+This source collects git stash entries and lists them in ddu.vim.
+Each item represents one stash with its reference (e.g. `stash@{0}`) and
+subject line.
+The accompanying kind provides actions to operate on stashes.
+
+
+==============================================================================
+INSTALL					*ddu-source-git_stash-install*
+
+Use your plugin manager to install this plugin.
+
+Requirements:
+- ddu.vim (https://github.com/Shougo/ddu.vim)
+- denops.vim (https://github.com/vim-denops/denops.vim)
+- git command available in PATH
+
+
+==============================================================================
+SOURCE					*ddu-source-git_stash-source*
+
+git_stash
+		Collects stash entries from `git stash list` output.
+		Each item displays the stash reference followed by the
+		subject line (e.g. `stash@{0}: WIP on main: abc1234 msg`).
+
+		Highlights applied per item:
+
+		  git_stash-stashRef   The stash reference (`stash@{N}`).
+		                       Uses |highlights.stashRef|.
+
+			*ddu-source-git_stash-source-params*
+PARAMS ~
+
+args		(string[])
+		Additional arguments passed to `git stash list`.
+		Default: []
+
+cwd		(string)
+		Working directory for the git command.
+		If empty, uses the current working directory from context.
+		Default: ""
+
+highlights	(object)
+		Highlight group names for stash display.
+
+		highlights.stashRef  (string)
+			Highlight applied to the stash reference
+			(`stash@{N}`).
+			Default: "Identifier"
+
+
+==============================================================================
+KIND					*ddu-kind-git_stash*
+
+git_stash
+		Kind for git stash items. Provides stash operations.
+
+			*ddu-kind-git_stash-actions*
+ACTIONS ~
+
+yank
+		Yank the stash reference (`stash@{N}`) to the unnamed
+		register.
+
+pop
+		Apply the selected stash and remove it from the stash list
+		(`git stash pop <stashRef>`). Refreshes the ddu list on
+		success.
+
+apply
+		Apply the selected stash without removing it from the stash
+		list (`git stash apply <stashRef>`).
+
+drop
+		Drop the selected stash after confirmation
+		(`git stash drop <stashRef>`). Refreshes the ddu list on
+		success.
+
+branch
+		Prompt for a branch name, then create a new branch from the
+		selected stash (`git stash branch <name> <stashRef>`).
+		Empty input cancels the action. Refreshes the ddu list on
+		success.
+
+			*ddu-kind-git_stash-preview*
+PREVIEW ~
+
+		Selecting an item displays the stash diff in the preview
+		window (`git stash show -p <stashRef>`).
+
+
+==============================================================================
+EXAMPLES				*ddu-source-git_stash-examples*
+
+>vim
+	" Basic usage
+	call ddu#start(#{
+	  \   sources: [#{name: 'git_stash'}],
+	  \ })
+
+	" Set default action to pop
+	call ddu#custom#patch_global(#{
+	  \   kindOptions: #{
+	  \     git_stash: #{
+	  \       defaultAction: 'pop',
+	  \     },
+	  \   },
+	  \ })
+
+	" Show preview automatically on cursor move
+	call ddu#custom#patch_local('git_stash', #{
+	  \   uiParams: #{
+	  \     ff: #{
+	  \       autoAction: #{name: 'preview'},
+	  \       startAutoAction: v:true,
+	  \     },
+	  \   },
+	  \ })
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
