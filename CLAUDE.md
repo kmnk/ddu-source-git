@@ -78,11 +78,11 @@ denops/
       main.ts
     git_worktree/         — Kind: defines actions on worktree items (cd, remove, lock, unlock, yank)
       main.ts
-    git_grep/             — Kind: defines actions on grep match items (open, tabopen, yank)
+    git_grep/             — Kind: defines actions on grep match items (open, tabopen, split, vsplit, yank)
       main.ts
     git_submodule/        — Kind: defines actions on submodule items (open, update, init, deinit, yank)
       main.ts
-    git_blame/            — Kind: defines actions on blame items (open, tabopen, showCommit, yank)
+    git_blame/            — Kind: defines actions on blame items (open, tabopen, split, vsplit, showCommit, yank)
       main.ts
 ```
 
@@ -93,11 +93,11 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Source** (`@ddu-sources/git_branch`): implements ddu.vim `BaseSource`. Calls `git branch` and maps output into `DduItem[]`.
 - **Kind** (`@ddu-kinds/git_branch`): implements ddu.vim `BaseKind`. Defines actions: `switch`, `create`, `delete`, `deleteForce`, `rebase`, `rebaseInteractive`, `move`, `copy`, `merge`, `push`, `pushForce`, `fetch`, `yank`. Params: `remote` (default: `"origin"`).
 - **Source** (`@ddu-sources/git_status`): implements ddu.vim `BaseSource`. Calls `git status --porcelain` and maps each line into `DduItem[]` with XY highlight.
-- **Kind** (`@ddu-kinds/git_status`): implements ddu.vim `BaseKind`. Defines actions: `diff`, `diffCached`, `add`, `restore`, `restoreStaged`, `commit`, `commitAmend`, `open`, `tabopen`, `delete`, `yank`.
+- **Kind** (`@ddu-kinds/git_status`): implements ddu.vim `BaseKind`. Defines actions: `diff`, `diffCached`, `add`, `restore`, `restoreStaged`, `commit`, `commitAmend`, `open`, `tabopen`, `split`, `vsplit`, `delete`, `yank`.
 - **Source** (`@ddu-sources/git_log`): implements ddu.vim `BaseSource`. Calls `git log --graph` and maps each line into `DduItem[]` with graph/hash highlights.
 - **Kind** (`@ddu-kinds/git_log`): implements ddu.vim `BaseKind`. Defines actions: `reset`, `resetHard`, `createBranch`, `cherryPick`, `revert`, `tag`, `diff`, `files`, `yank`. Provides a commit summary previewer.
 - **Source** (`@ddu-sources/git_log_files`): implements ddu.vim `BaseSource`. Calls `git show --name-status` for a given hash and maps each changed file into `DduItem[]`.
-- **Kind** (`@ddu-kinds/git_log_files`): implements ddu.vim `BaseKind`. Defines actions: `open`, `tabopen`, `yank`.
+- **Kind** (`@ddu-kinds/git_log_files`): implements ddu.vim `BaseKind`. Defines actions: `open`, `tabopen`, `split`, `vsplit`, `yank`.
 - **Source** (`@ddu-sources/git_stash`): implements ddu.vim `BaseSource`. Calls `git stash list` and maps each stash into `DduItem[]`.
 - **Kind** (`@ddu-kinds/git_stash`): implements ddu.vim `BaseKind`. Defines actions: `pop`, `apply`, `drop`, `branch`, `yank`. Provides a diff previewer via `git stash show -p`.
 - **Source** (`@ddu-sources/git_tag`): implements ddu.vim `BaseSource`. Calls `git tag -l --sort=-version:refname` and maps each tag into `DduItem[]`.
@@ -111,11 +111,11 @@ Each Git concept gets its own source/kind pair under `@ddu-sources/<name>` and `
 - **Source** (`@ddu-sources/git_worktree`): implements ddu.vim `BaseSource`. Calls `git worktree list --porcelain` and maps each worktree into `DduItem[]` with hash/branch highlights.
 - **Kind** (`@ddu-kinds/git_worktree`): implements ddu.vim `BaseKind`. Defines actions: `cd`, `remove` (with confirm), `lock`, `unlock`, `yank`. Params: `cdCommand` (default: `"cd"`). Preview shows path, branch, recent commits.
 - **Source** (`@ddu-sources/git_grep`): implements ddu.vim `BaseSource`. Calls `git grep -n --column` and maps each match into `DduItem[]`. Params: `pattern` (empty string prompts via `fn.input`), `rev`, `args`.
-- **Kind** (`@ddu-kinds/git_grep`): implements ddu.vim `BaseKind`. Defines actions: `open` (edit at matched line/col), `tabopen`, `yank`.
+- **Kind** (`@ddu-kinds/git_grep`): implements ddu.vim `BaseKind`. Defines actions: `open` (edit at matched line/col), `tabopen`, `split`, `vsplit`, `yank`.
 - **Source** (`@ddu-sources/git_submodule`): implements ddu.vim `BaseSource`. Calls `git submodule status` and maps each submodule into `DduItem[]` with status/hash highlights.
 - **Kind** (`@ddu-kinds/git_submodule`): implements ddu.vim `BaseKind`. Defines actions: `open` (cd into submodule path), `update` (init+update), `init`, `deinit` (with confirm), `yank`. Params: `cdCommand` (default: `"cd"`). Preview shows path/hash/status and recent commits.
 - **Source** (`@ddu-sources/git_blame`): implements ddu.vim `BaseSource`. Calls `git blame --line-porcelain` and maps each line into `DduItem[]` with hash/date/lineNr highlights. Params: `file` (empty = current buffer), `rev`, `args`.
-- **Kind** (`@ddu-kinds/git_blame`): implements ddu.vim `BaseKind`. Defines actions: `open` (edit at blamed line), `tabopen`, `showCommit` (nofile buffer with commit details, skips uncommitted lines), `yank`. Preview shows commit info for committed lines.
+- **Kind** (`@ddu-kinds/git_blame`): implements ddu.vim `BaseKind`. Defines actions: `open` (edit at blamed line), `tabopen`, `split`, `vsplit`, `showCommit` (nofile buffer with commit details, skips uncommitted lines), `yank`. Preview shows commit info for committed lines.
 - **Utils** (`@ddu-git-utils/echo.ts`): provides `echoLog` and `echoErr` wrappers around `denops.cmd("echo ...")`.
 - **Utils** (`@ddu-git-utils/git.ts`): provides `runGit` to execute git commands via `Deno.Command`. Shared across all kinds.
 

@@ -58,6 +58,32 @@ export class Kind extends BaseKind<Params> {
       },
     },
 
+    split: {
+      description: "Open the file at the blamed line in a horizontal split.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          if (action.path === "") continue;
+          const escaped = await fn.fnameescape(args.denops, action.path);
+          await args.denops.cmd(`split +${action.line} ${escaped}`);
+        }
+        return ActionFlags.None;
+      },
+    },
+
+    vsplit: {
+      description: "Open the file at the blamed line in a vertical split.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          if (action.path === "") continue;
+          const escaped = await fn.fnameescape(args.denops, action.path);
+          await args.denops.cmd(`vsplit +${action.line} ${escaped}`);
+        }
+        return ActionFlags.None;
+      },
+    },
+
     showCommit: {
       description:
         "Show commit details for the blamed line in a nofile buffer. Skips uncommitted lines.",
