@@ -44,6 +44,34 @@ export class Kind extends BaseKind<Params> {
         return ActionFlags.None;
       },
     },
+
+    split: {
+      description: "Open the file at the matched line in a horizontal split.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          if (action.path === "") continue;
+          const escaped = await fn.fnameescape(args.denops, action.path);
+          await args.denops.cmd(`split +${action.line} ${escaped}`);
+          await fn.cursor(args.denops, action.line, action.col);
+        }
+        return ActionFlags.None;
+      },
+    },
+
+    vsplit: {
+      description: "Open the file at the matched line in a vertical split.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          if (action.path === "") continue;
+          const escaped = await fn.fnameescape(args.denops, action.path);
+          await args.denops.cmd(`vsplit +${action.line} ${escaped}`);
+          await fn.cursor(args.denops, action.line, action.col);
+        }
+        return ActionFlags.None;
+      },
+    },
   };
 
   override params(): Params {

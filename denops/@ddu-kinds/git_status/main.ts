@@ -136,6 +136,32 @@ export class Kind extends BaseKind<Params> {
       },
     },
 
+    split: {
+      description: "Open the file in a horizontal split.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          if (action.path === "") continue;
+          const escaped = await fn.fnameescape(args.denops, action.path);
+          await args.denops.cmd(`split ${escaped}`);
+        }
+        return ActionFlags.None;
+      },
+    },
+
+    vsplit: {
+      description: "Open the file in a vertical split.",
+      callback: async (args) => {
+        for (const item of args.items) {
+          const action = item?.action as ActionData;
+          if (action.path === "") continue;
+          const escaped = await fn.fnameescape(args.denops, action.path);
+          await args.denops.cmd(`vsplit ${escaped}`);
+        }
+        return ActionFlags.None;
+      },
+    },
+
     delete: {
       description: "Delete the file from the filesystem.",
       callback: async (args) => {
