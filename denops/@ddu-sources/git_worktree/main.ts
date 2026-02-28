@@ -15,6 +15,10 @@ import { resolveCwd, runGit } from "@kmnk/ddu-git-utils/git";
 type Params = {
   args: string[];
   cwd: string;
+  highlights: {
+    hash: string;
+    branch: string;
+  };
 };
 
 export class Source extends BaseSource<Params> {
@@ -96,16 +100,18 @@ export class Source extends BaseSource<Params> {
           }  ${worktreePath}${statusSuffix}`;
           const word = `${branchDisplay}  ${worktreePath}`;
 
+          const { hash: hashHl, branch: branchHl } =
+            args.sourceParams.highlights;
           const highlights: ItemHighlight[] = [
             {
               name: "git_worktree-hash",
-              hl_group: "Identifier",
+              hl_group: hashHl,
               col: 1,
               width: enc.encode(shortHash).length,
             },
             {
               name: "git_worktree-branch",
-              hl_group: "Special",
+              hl_group: branchHl,
               col: enc.encode(shortHash).length + 3,
               width: enc.encode(branchDisplay).length,
             },
@@ -137,6 +143,10 @@ export class Source extends BaseSource<Params> {
     return {
       args: [],
       cwd: "",
+      highlights: {
+        hash: "Identifier",
+        branch: "Special",
+      },
     };
   }
 }

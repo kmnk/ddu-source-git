@@ -51,9 +51,9 @@ git_worktree
 		Highlights applied per item:
 
 		  git_worktree-hash    The abbreviated HEAD hash.
-		                       Highlight group: "Identifier"
+		                       Controlled by highlights.hash param.
 		  git_worktree-branch  The branch name.
-		                       Highlight group: "Special"
+		                       Controlled by highlights.branch param.
 
 			*ddu-source-git_worktree-source-params*
 PARAMS ~
@@ -66,6 +66,17 @@ cwd		(string)
 		Working directory for the git command.
 		If empty, uses the current working directory from context.
 		Default: ""
+
+highlights	(object)
+		Highlight group names for each element.
+
+		highlights.hash		(string)
+			Highlight group for the abbreviated HEAD hash.
+			Default: "Identifier"
+
+		highlights.branch	(string)
+			Highlight group for the branch name.
+			Default: "Special"
 
 
 ==============================================================================
