@@ -9,6 +9,8 @@ import { BaseSource } from "@shougo/ddu-vim/source";
 import type { ActionData } from "@kmnk/ddu-kind-git_config";
 
 import type { Denops } from "@denops/std";
+import { echoErr } from "@kmnk/ddu-git-utils/echo";
+import { resolveCwd, runGit } from "@kmnk/ddu-git-utils/git";
 
 type Params = {
   args: string[];
@@ -33,7 +35,7 @@ export class Source extends BaseSource<Params> {
   }): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        const cwd = args.sourceParams.cwd || args.context.cwd;
+        const cwd = resolveCwd(args.sourceParams, args.context);
 
         const cmdArgs = [
           "config",
@@ -43,23 +45,15 @@ export class Source extends BaseSource<Params> {
           ...args.sourceParams.args,
         ];
 
-        const proc = new Deno.Command("git", {
-          args: cmdArgs,
-          cwd,
-          stdout: "piped",
-          stderr: "piped",
-        });
-        const { success, stdout, stderr } = await proc.output();
+        const { success, out, err } = await runGit(cmdArgs, cwd);
 
         if (!success) {
-          const err = new TextDecoder().decode(stderr).trim();
-          console.error(`[ddu-source-git_config] ${err}`);
+          await echoErr(args.denops, err);
           controller.close();
           return;
         }
 
-        const output = new TextDecoder().decode(stdout).trim();
-        if (output === "") {
+        if (out === "") {
           controller.close();
           return;
         }
@@ -75,7 +69,7 @@ export class Source extends BaseSource<Params> {
 
         const filterScopes = args.sourceParams.scopes;
 
-        const items: Item<ActionData>[] = output
+        const items: Item<ActionData>[] = out
           .split("\n")
           .filter((line) => line !== "")
           .flatMap((line) => {

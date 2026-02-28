@@ -9,6 +9,8 @@ import { BaseSource } from "@shougo/ddu-vim/source";
 import type { ActionData } from "@kmnk/ddu-kind-git_log_files";
 
 import type { Denops } from "@denops/std";
+import { echoErr } from "@kmnk/ddu-git-utils/echo";
+import { resolveCwd, runGit } from "@kmnk/ddu-git-utils/git";
 
 type Params = {
   hash: string;
@@ -38,31 +40,20 @@ export class Source extends BaseSource<Params> {
           return;
         }
 
-        const cwd = args.sourceParams.cwd || args.context.cwd;
+        const cwd = resolveCwd(args.sourceParams, args.context);
 
-        const proc = new Deno.Command("git", {
-          args: [
-            "--no-pager",
-            "show",
-            "--name-status",
-            "--format=",
-            hash,
-          ],
+        const { success, out, err } = await runGit(
+          ["--no-pager", "show", "--name-status", "--format=", hash],
           cwd,
-          stdout: "piped",
-          stderr: "piped",
-        });
-        const { success, stdout, stderr } = await proc.output();
+        );
 
         if (!success) {
-          const err = new TextDecoder().decode(stderr).trim();
-          console.error(`[ddu-source-git_log_files] ${err}`);
+          await echoErr(args.denops, err);
           controller.close();
           return;
         }
 
-        const output = new TextDecoder().decode(stdout).trimEnd();
-        if (output === "") {
+        if (out === "") {
           controller.close();
           return;
         }
@@ -75,7 +66,7 @@ export class Source extends BaseSource<Params> {
           renamed: renamedHl,
         } = args.sourceParams.highlights;
 
-        const lines = output.split("\n").filter((line) => line.length > 0);
+        const lines = out.split("\n").filter((line) => line.length > 0);
         const items: Item<ActionData>[] = lines.map((line) => {
           const fields = line.split("\t");
           const statusCode = fields[0];

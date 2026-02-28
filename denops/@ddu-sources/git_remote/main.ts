@@ -9,6 +9,8 @@ import { BaseSource } from "@shougo/ddu-vim/source";
 import type { ActionData } from "@kmnk/ddu-kind-git_remote";
 
 import type { Denops } from "@denops/std";
+import { echoErr } from "@kmnk/ddu-git-utils/echo";
+import { resolveCwd, runGit } from "@kmnk/ddu-git-utils/git";
 
 type Params = {
   args: string[];
@@ -26,25 +28,20 @@ export class Source extends BaseSource<Params> {
   }): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        const cwd = args.sourceParams.cwd || args.context.cwd;
+        const cwd = resolveCwd(args.sourceParams, args.context);
 
-        const proc = new Deno.Command("git", {
-          args: ["remote", "-v", ...args.sourceParams.args],
+        const { success, out, err } = await runGit(
+          ["remote", "-v", ...args.sourceParams.args],
           cwd,
-          stdout: "piped",
-          stderr: "piped",
-        });
-        const { success, stdout, stderr } = await proc.output();
+        );
 
         if (!success) {
-          const err = new TextDecoder().decode(stderr).trim();
-          console.error(`[ddu-source-git_remote] ${err}`);
+          await echoErr(args.denops, err);
           controller.close();
           return;
         }
 
-        const output = new TextDecoder().decode(stdout).trim();
-        if (output === "") {
+        if (out === "") {
           controller.close();
           return;
         }
@@ -53,7 +50,7 @@ export class Source extends BaseSource<Params> {
         const seen = new Set<string>();
         const items: Item<ActionData>[] = [];
 
-        for (const line of output.split("\n")) {
+        for (const line of out.split("\n")) {
           if (line === "") continue;
 
           // format: <name>\t<url> (fetch)  or  <name>\t<url> (push)
