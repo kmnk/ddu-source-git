@@ -22,6 +22,8 @@ type Params = {
   };
 };
 
+const BATCH_SIZE = 100;
+
 export class Source extends BaseSource<Params> {
   override kind = "git_grep";
 
@@ -32,6 +34,9 @@ export class Source extends BaseSource<Params> {
     sourceParams: Params;
   }): ReadableStream<Item<ActionData>[]> {
     const { denops } = args;
+    let proc: Deno.ChildProcess | undefined;
+    let cancelled = false;
+
     return new ReadableStream({
       async start(controller) {
         const cwd = args.sourceParams.cwd || args.context.cwd;
@@ -43,6 +48,11 @@ export class Source extends BaseSource<Params> {
             controller.close();
             return;
           }
+        }
+
+        if (cancelled) {
+          controller.close();
+          return;
         }
 
         const rev = args.sourceParams.rev;
@@ -58,107 +68,123 @@ export class Source extends BaseSource<Params> {
           ...(rev !== "" ? [rev] : []),
         ];
 
-        const proc = new Deno.Command("git", {
+        proc = new Deno.Command("git", {
           args: cmdArgs,
           cwd,
           stdout: "piped",
-          stderr: "piped",
-        });
-        const { stdout, stderr } = await proc.output();
-
-        // git grep exits with 1 when no matches — treat as empty result
-        const errText = new TextDecoder().decode(stderr).trim();
-        if (errText !== "") {
-          console.error(`[ddu-source-git_grep] ${errText}`);
-        }
-
-        const output = new TextDecoder().decode(stdout).trimEnd();
-        if (output === "") {
-          controller.close();
-          return;
-        }
+          stderr: "null",
+        }).spawn();
 
         const enc = new TextEncoder();
         const { path: pathHl, lineNr: lineNrHl } = args.sourceParams.highlights;
         const hasRev = rev !== "";
 
-        const items: Item<ActionData>[] = output
-          .split("\n")
-          .filter((line) => line.length > 0)
-          .flatMap((line) => {
-            let rest = line;
-
-            // Skip the rev prefix (e.g. "HEAD:") if rev is specified
-            if (hasRev) {
-              const colonIdx = rest.indexOf(":");
-              if (colonIdx === -1) return [];
-              rest = rest.slice(colonIdx + 1);
+        let buf = "";
+        const lineSplitter = new TransformStream<string, string>({
+          transform(chunk, controller) {
+            buf += chunk;
+            const lines = buf.split("\n");
+            buf = lines.pop() ?? "";
+            for (const line of lines) {
+              if (line.length > 0) controller.enqueue(line);
             }
+          },
+          flush(controller) {
+            if (buf.length > 0) controller.enqueue(buf);
+          },
+        });
 
-            // Parse: file:lineNum:colNum:text
-            const c1 = rest.indexOf(":");
-            if (c1 === -1) return [];
-            const filePath = rest.slice(0, c1);
-            rest = rest.slice(c1 + 1);
+        const lineStream = proc.stdout
+          .pipeThrough(new TextDecoderStream())
+          .pipeThrough(lineSplitter);
 
-            const c2 = rest.indexOf(":");
-            if (c2 === -1) return [];
-            const lineNum = parseInt(rest.slice(0, c2), 10);
-            rest = rest.slice(c2 + 1);
+        const batch: Item<ActionData>[] = [];
 
-            const c3 = rest.indexOf(":");
-            if (c3 === -1) return [];
-            const colNum = parseInt(rest.slice(0, c3), 10);
-            const text = rest.slice(c3 + 1);
+        for await (const line of lineStream) {
+          if (cancelled) break;
 
-            if (isNaN(lineNum) || isNaN(colNum)) return [];
+          let rest = line;
 
-            const absolutePath = filePath.startsWith("/")
-              ? filePath
-              : `${cwd}/${filePath}`;
+          if (hasRev) {
+            const colonIdx = rest.indexOf(":");
+            if (colonIdx === -1) continue;
+            rest = rest.slice(colonIdx + 1);
+          }
 
-            const lineNrStr = String(lineNum);
-            const colNumStr = String(colNum);
-            const display = `${filePath}:${lineNrStr}:${colNumStr}: ${text}`;
+          const c1 = rest.indexOf(":");
+          if (c1 === -1) continue;
+          const filePath = rest.slice(0, c1);
+          rest = rest.slice(c1 + 1);
 
-            const pathWidth = enc.encode(filePath).length;
-            // lineNr highlight: col after "file:" → pathWidth + 2 (1-indexed + colon)
-            const lineNrCol = pathWidth + 2;
-            const lineNrWidth = enc.encode(lineNrStr).length;
+          const c2 = rest.indexOf(":");
+          if (c2 === -1) continue;
+          const lineNum = parseInt(rest.slice(0, c2), 10);
+          rest = rest.slice(c2 + 1);
 
-            const highlights: ItemHighlight[] = [
-              {
-                name: "git_grep-path",
-                hl_group: pathHl,
-                col: 1,
-                width: pathWidth,
-              },
-              {
-                name: "git_grep-line-nr",
-                hl_group: lineNrHl,
-                col: lineNrCol,
-                width: lineNrWidth,
-              },
-            ];
+          const c3 = rest.indexOf(":");
+          if (c3 === -1) continue;
+          const colNum = parseInt(rest.slice(0, c3), 10);
+          const text = rest.slice(c3 + 1);
 
-            return [
-              {
-                word: `${filePath}:${lineNum}`,
-                display,
-                highlights,
-                action: {
-                  path: absolutePath,
-                  line: lineNum,
-                  col: colNum,
-                  text,
-                  cwd,
-                },
-              },
-            ];
+          if (isNaN(lineNum) || isNaN(colNum)) continue;
+
+          const absolutePath = filePath.startsWith("/")
+            ? filePath
+            : `${cwd}/${filePath}`;
+
+          const lineNrStr = String(lineNum);
+          const colNumStr = String(colNum);
+          const display = `${filePath}:${lineNrStr}:${colNumStr}: ${text}`;
+
+          const pathWidth = enc.encode(filePath).length;
+          const lineNrCol = pathWidth + 2;
+          const lineNrWidth = enc.encode(lineNrStr).length;
+
+          const highlights: ItemHighlight[] = [
+            {
+              name: "git_grep-path",
+              hl_group: pathHl,
+              col: 1,
+              width: pathWidth,
+            },
+            {
+              name: "git_grep-line-nr",
+              hl_group: lineNrHl,
+              col: lineNrCol,
+              width: lineNrWidth,
+            },
+          ];
+
+          batch.push({
+            word: `${filePath}:${lineNum}`,
+            display,
+            highlights,
+            action: {
+              path: absolutePath,
+              line: lineNum,
+              col: colNum,
+              text,
+              cwd,
+            },
           });
 
-        controller.enqueue(items);
+          if (batch.length >= BATCH_SIZE) {
+            controller.enqueue([...batch]);
+            batch.length = 0;
+          }
+        }
+
+        if (!cancelled && batch.length > 0) controller.enqueue(batch);
         controller.close();
+      },
+
+      cancel() {
+        cancelled = true;
+        try {
+          proc?.kill();
+        } catch {
+          // already exited
+        }
       },
     });
   }
