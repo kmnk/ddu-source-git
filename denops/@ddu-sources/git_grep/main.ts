@@ -10,6 +10,7 @@ import type { ActionData } from "@kmnk/ddu-kind-git_grep";
 
 import type { Denops } from "@denops/std";
 import * as fn from "@denops/std/function";
+import { createLineSplitter, resolveCwd } from "@kmnk/ddu-git-utils/git";
 
 type Params = {
   pattern: string;
@@ -39,7 +40,7 @@ export class Source extends BaseSource<Params> {
 
     return new ReadableStream({
       async start(controller) {
-        const cwd = args.sourceParams.cwd || args.context.cwd;
+        const cwd = resolveCwd(args.sourceParams, args.context);
 
         let pattern = args.sourceParams.pattern;
         if (pattern === "") {
@@ -79,29 +80,16 @@ export class Source extends BaseSource<Params> {
         const { path: pathHl, lineNr: lineNrHl } = args.sourceParams.highlights;
         const hasRev = rev !== "";
 
-        let buf = "";
-        const lineSplitter = new TransformStream<string, string>({
-          transform(chunk, controller) {
-            buf += chunk;
-            const lines = buf.split("\n");
-            buf = lines.pop() ?? "";
-            for (const line of lines) {
-              if (line.length > 0) controller.enqueue(line);
-            }
-          },
-          flush(controller) {
-            if (buf.length > 0) controller.enqueue(buf);
-          },
-        });
-
         const lineStream = proc.stdout
           .pipeThrough(new TextDecoderStream())
-          .pipeThrough(lineSplitter);
+          .pipeThrough(createLineSplitter());
 
         const batch: Item<ActionData>[] = [];
 
         for await (const line of lineStream) {
           if (cancelled) break;
+
+          if (line.length === 0) continue;
 
           let rest = line;
 
