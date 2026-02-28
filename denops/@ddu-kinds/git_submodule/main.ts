@@ -7,6 +7,7 @@ import { BaseKind, type GetPreviewerArguments } from "@shougo/ddu-vim/kind";
 import * as fn from "@denops/std/function";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { runGit } from "@kmnk/ddu-git-utils/git";
+import { WordActions } from "@shougo/ddu-kind-word";
 
 export type ActionData = {
   isHeader?: boolean; // true for the always-present header item
@@ -24,18 +25,7 @@ type Params = {
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {
-    yank: {
-      description: "Yank the submodule path.",
-      callback: async (args) => {
-        for (const item of args.items) {
-          const action = item?.action as ActionData;
-          if (action.isHeader) continue;
-          await fn.setreg(args.denops, '"', action.text);
-          await fn.setreg(args.denops, "*", action.text);
-        }
-        return ActionFlags.None;
-      },
-    },
+    yank: WordActions.yank,
 
     open: {
       description:

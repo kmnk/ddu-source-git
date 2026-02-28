@@ -5,6 +5,7 @@ import { combineOutput } from "@kmnk/ddu-git-utils/action";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { callFugitiveGit, requireFugitive } from "@kmnk/ddu-git-utils/fugitive";
 import { runGit } from "@kmnk/ddu-git-utils/git";
+import { WordActions } from "@shougo/ddu-kind-word";
 
 export type ActionData = {
   branch: string;
@@ -20,17 +21,7 @@ type Params = {
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {
-    yank: {
-      description: "Yank the branch name.",
-      callback: async (args) => {
-        for (const item of args.items) {
-          const action = item?.action as ActionData;
-          await fn.setreg(args.denops, '"', action.text);
-          await fn.setreg(args.denops, "*", action.text);
-        }
-        return ActionFlags.None;
-      },
-    },
+    yank: WordActions.yank,
 
     switch: {
       description: "Switch to the selected branch.",
