@@ -11,6 +11,7 @@
     "@denops/std": "jsr:@denops/std@~8.0.0",
     "@kmnk/ddu-git-utils/action": "../../@ddu-git-utils/action.ts",
     "@kmnk/ddu-git-utils/echo": "../../@ddu-git-utils/echo.ts",
+    "@kmnk/ddu-git-utils/fugitive": "../../@ddu-git-utils/fugitive.ts",
     "@kmnk/ddu-git-utils/git": "../../@ddu-git-utils/git.ts",
     "@shougo/ddu-vim": "jsr:@shougo/ddu-vim@~11.0.0",
     "@shougo/ddu-kind-word": "jsr:@shougo/ddu-kind-word@~1.0.0"
