@@ -294,7 +294,10 @@ export class Kind extends BaseKind<Params> {
     const action = args.item.action as ActionData;
     if (!action.fullHash) return undefined;
 
-    const { out } = await runGit(commitSummaryArgs(action.fullHash), action.cwd);
+    const { out } = await runGit(
+      commitSummaryArgs(action.fullHash),
+      action.cwd,
+    );
 
     return {
       kind: "nofile",

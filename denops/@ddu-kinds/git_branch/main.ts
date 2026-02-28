@@ -1,4 +1,4 @@
-import { ActionFlags, type Action, type Actions } from "@shougo/ddu-vim/types";
+import { type Action, ActionFlags, type Actions } from "@shougo/ddu-vim/types";
 import { BaseKind } from "@shougo/ddu-vim/kind";
 import * as fn from "@denops/std/function";
 import { combineOutput } from "@kmnk/ddu-git-utils/action";

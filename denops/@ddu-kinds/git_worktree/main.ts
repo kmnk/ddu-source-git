@@ -1,6 +1,6 @@
 import {
-  ActionFlags,
   type Action,
+  ActionFlags,
   type Actions,
   type Previewer,
 } from "@shougo/ddu-vim/types";

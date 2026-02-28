@@ -4,7 +4,6 @@ import {
   type Previewer,
 } from "@shougo/ddu-vim/types";
 import { BaseKind, type GetPreviewerArguments } from "@shougo/ddu-vim/kind";
-import * as fn from "@denops/std/function";
 import { combineOutput } from "@kmnk/ddu-git-utils/action";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { runGit } from "@kmnk/ddu-git-utils/git";
