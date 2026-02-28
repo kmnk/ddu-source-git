@@ -1,8 +1,9 @@
 import { ActionFlags, type Actions } from "@shougo/ddu-vim/types";
 import { BaseKind } from "@shougo/ddu-vim/kind";
 import * as fn from "@denops/std/function";
-import { combineOutput, openNofileBuffer } from "@kmnk/ddu-git-utils/action";
+import { combineOutput } from "@kmnk/ddu-git-utils/action";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
+import { callFugitiveGit, requireFugitive } from "@kmnk/ddu-git-utils/fugitive";
 import { runGit } from "@kmnk/ddu-git-utils/git";
 
 export type ActionData = {
@@ -187,8 +188,9 @@ export class Kind extends BaseKind<Params> {
 
     rebaseInteractive: {
       description:
-        "Interactively rebase the current branch onto the selected branch.",
+        "Interactively rebase the current branch onto the selected branch via vim-fugitive's :Git rebase -i. Requires vim-fugitive.",
       callback: async (args) => {
+        if (!await requireFugitive(args.denops)) return ActionFlags.None;
         for (const item of args.items) {
           const action = item?.action as ActionData;
 
@@ -196,13 +198,14 @@ export class Kind extends BaseKind<Params> {
             continue;
           }
 
-          const escapedCwd = await fn.shellescape(args.denops, action.cwd);
-          const escapedBranch = await fn.shellescape(
+          const escapedBranch = await fn.fnameescape(
             args.denops,
             action.branch,
           );
-          await args.denops.cmd(
-            `terminal git -C ${escapedCwd} rebase -i ${escapedBranch}`,
+          await callFugitiveGit(
+            args.denops,
+            action.cwd,
+            `rebase -i ${escapedBranch}`,
           );
         }
 
@@ -274,37 +277,22 @@ export class Kind extends BaseKind<Params> {
 
     merge: {
       description:
-        "Merge the selected branch into the current branch (`git merge <branch>`). Requires confirmation.",
+        "Merge the selected branch into the current branch via vim-fugitive's :Git merge. Requires vim-fugitive.",
       callback: async (args) => {
+        if (!await requireFugitive(args.denops)) return ActionFlags.None;
         for (const item of args.items) {
           const action = item?.action as ActionData;
 
           if (action.isCurrent) continue;
 
-          const confirm = await fn.confirm(
+          const escapedBranch = await fn.fnameescape(
             args.denops,
-            `Merge "${action.branch}" into current branch?`,
-            "&Yes\n&No",
-            2,
-          ) as number;
-          if (confirm !== 1) {
-            return ActionFlags.Persist;
-          }
-
-          const { success, out, err } = await runGit(
-            ["merge", action.branch],
-            action.cwd,
+            action.branch,
           );
-          if (!success) {
-            await openNofileBuffer(
-              args.denops,
-              combineOutput(out, err).split("\n"),
-            );
-            return ActionFlags.None;
-          }
-          await echoLog(
+          await callFugitiveGit(
             args.denops,
-            combineOutput(out, err),
+            action.cwd,
+            `merge ${escapedBranch}`,
           );
         }
 

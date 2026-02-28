@@ -4,6 +4,7 @@
   "exports": {
     "./action": "./action.ts",
     "./echo": "./echo.ts",
+    "./fugitive": "./fugitive.ts",
     "./git": "./git.ts"
   },
   "publish": {

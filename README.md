@@ -45,6 +45,14 @@ to the current buffer's directory.
 - [denops.vim](https://github.com/vim-denops/denops.vim) — Deno–Vim/Neovim bridge
 - [ddu.vim](https://github.com/Shougo/ddu.vim) — ddu framework
 
+## Optional Dependencies
+
+| Plugin | Actions |
+|--------|---------|
+| [vim-fugitive](https://github.com/tpope/vim-fugitive) (tpope/vim-fugitive) | `git_status`: `commit`, `commitAmend` — `git_branch`: `rebaseInteractive`, `merge` — `git_log`: `cherryPick`, `revert` |
+
+Actions listed above delegate to vim-fugitive's `:Git` command to handle interactive operations (editor buffers, conflict resolution) reliably across Vim and Neovim. If vim-fugitive is not installed, calling these actions shows an error message.
+
 ## Dependencies
 
 TypeScript packages resolved automatically by Deno via `deno.json` import maps (no manual installation required):
