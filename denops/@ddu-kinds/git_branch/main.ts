@@ -1,4 +1,4 @@
-import { ActionFlags, type Actions } from "@shougo/ddu-vim/types";
+import { ActionFlags, type Action, type Actions } from "@shougo/ddu-vim/types";
 import { BaseKind } from "@shougo/ddu-vim/kind";
 import * as fn from "@denops/std/function";
 import { combineOutput } from "@kmnk/ddu-git-utils/action";
@@ -21,7 +21,7 @@ type Params = {
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {
-    yank: WordActions.yank,
+    yank: WordActions.yank as unknown as Action<Params>,
 
     switch: {
       description: "Switch to the selected branch.",

@@ -1,5 +1,6 @@
 import {
   ActionFlags,
+  type Action,
   type Actions,
   type Previewer,
 } from "@shougo/ddu-vim/types";
@@ -25,7 +26,7 @@ type Params = {
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {
-    yank: WordActions.yank,
+    yank: WordActions.yank as unknown as Action<Params>,
 
     cd: {
       description:
