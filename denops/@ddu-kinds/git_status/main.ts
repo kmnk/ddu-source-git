@@ -3,8 +3,8 @@ import { ActionFlags, type Actions } from "@shougo/ddu-vim/types";
 import { BaseKind } from "@shougo/ddu-vim/kind";
 import { WordActions } from "@shougo/ddu-kind-word";
 import * as fn from "@denops/std/function";
-import { register } from "@denops/std/lambda";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
+import { callFugitiveGit, requireFugitive } from "@kmnk/ddu-git-utils/fugitive";
 import { runGit } from "@kmnk/ddu-git-utils/git";
 
 export type ActionData = {
@@ -15,58 +15,6 @@ export type ActionData = {
 };
 
 type Params = Record<string, never>;
-
-async function openCommitBuffer(
-  denops: Denops,
-  action: ActionData,
-  amend: boolean,
-): Promise<ActionFlags> {
-  const { success: gitDirSuccess, out: gitDirOut } = await runGit(
-    ["rev-parse", "--git-dir"],
-    action.cwd,
-  );
-  if (!gitDirSuccess) return ActionFlags.None;
-
-  const gitDir = gitDirOut.startsWith("/")
-    ? gitDirOut
-    : `${action.cwd}/${gitDirOut}`;
-  const commitMsgFile = `${gitDir}/COMMIT_EDITMSG`;
-
-  const prefix = amend
-    ? (await runGit(["log", "-1", "--format=%B"], action.cwd)).out + "\n"
-    : "\n";
-  const { out: statusOut } = await runGit(["status"], action.cwd);
-  const statusLines = statusOut.split("\n").map((l) => `# ${l}`).join("\n");
-  const template =
-    `${prefix}# Please enter the commit message for your changes. Lines starting\n# with '#' will be stripped.\n#\n${statusLines}\n`;
-  await Deno.writeTextFile(commitMsgFile, template);
-
-  const escaped = await fn.fnameescape(denops, commitMsgFile);
-  await denops.cmd(`new ${escaped}`);
-  await denops.cmd("setlocal filetype=gitcommit bufhidden=wipe");
-
-  const commitArgs = amend
-    ? ["commit", "--amend", "--file", commitMsgFile, "--cleanup=strip"]
-    : ["commit", "--file", commitMsgFile, "--cleanup=strip"];
-  const callbackId = await register(
-    denops,
-    async () => {
-      const { success, out, err } = await runGit(commitArgs, action.cwd);
-      await echoLog(denops, out);
-      if (!success) {
-        await echoErr(denops, err);
-      }
-    },
-    { once: true },
-  );
-  await denops.cmd(
-    `autocmd BufWipeout <buffer> call denops#notify(${
-      JSON.stringify(denops.name)
-    }, ${JSON.stringify(callbackId)}, [])`,
-  );
-
-  return ActionFlags.None;
-}
 
 async function openDiffBuffer(
   denops: Denops,
@@ -230,20 +178,26 @@ export class Kind extends BaseKind<Params> {
     },
 
     commit: {
-      description: "Commit staged changes by editing COMMIT_EDITMSG.",
+      description:
+        "Commit staged changes via vim-fugitive's :Git commit. Requires vim-fugitive.",
       callback: async (args) => {
+        if (!await requireFugitive(args.denops)) return ActionFlags.None;
         const action = args.items[0]?.action as ActionData;
         if (!action) return ActionFlags.None;
-        return await openCommitBuffer(args.denops, action, false);
+        await callFugitiveGit(args.denops, action.cwd, "commit");
+        return ActionFlags.None;
       },
     },
 
     commitAmend: {
-      description: "Amend the last commit by editing COMMIT_EDITMSG.",
+      description:
+        "Amend the last commit via vim-fugitive's :Git commit --amend. Requires vim-fugitive.",
       callback: async (args) => {
+        if (!await requireFugitive(args.denops)) return ActionFlags.None;
         const action = args.items[0]?.action as ActionData;
         if (!action) return ActionFlags.None;
-        return await openCommitBuffer(args.denops, action, true);
+        await callFugitiveGit(args.denops, action.cwd, "commit --amend");
+        return ActionFlags.None;
       },
     },
   };

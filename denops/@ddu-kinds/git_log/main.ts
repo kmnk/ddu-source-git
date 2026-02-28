@@ -8,6 +8,7 @@ import { WordActions } from "@shougo/ddu-kind-word";
 import * as fn from "@denops/std/function";
 import { combineOutput, openNofileBuffer } from "@kmnk/ddu-git-utils/action";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
+import { callFugitiveGit, requireFugitive } from "@kmnk/ddu-git-utils/fugitive";
 import { runGit } from "@kmnk/ddu-git-utils/git";
 
 export type ActionData = {
@@ -174,8 +175,9 @@ export class Kind extends BaseKind<Params> {
 
     cherryPick: {
       description:
-        "Apply the selected commit(s) to the current branch with `git cherry-pick`.",
+        "Apply the selected commit(s) to the current branch via vim-fugitive's :Git cherry-pick. Multiple commits are applied oldest-first. Requires vim-fugitive.",
       callback: async (args) => {
+        if (!await requireFugitive(args.denops)) return ActionFlags.None;
         const items = args.items.filter(
           (item) => (item?.action as ActionData).fullHash !== "",
         );
@@ -184,23 +186,11 @@ export class Kind extends BaseKind<Params> {
         // Apply in reverse order (oldest first) so the result matches selection order
         const hashes = items
           .map((item) => (item?.action as ActionData).fullHash)
-          .reverse();
+          .reverse()
+          .join(" ");
 
-        const { success, out, err } = await runGit(
-          ["cherry-pick", ...hashes],
-          (items[0]?.action as ActionData).cwd,
-        );
-        if (!success) {
-          await openNofileBuffer(
-            args.denops,
-            combineOutput(out, err).split("\n"),
-          );
-          return ActionFlags.None;
-        }
-        await echoLog(
-          args.denops,
-          combineOutput(out, err),
-        );
+        const cwd = (items[0]?.action as ActionData).cwd;
+        await callFugitiveGit(args.denops, cwd, `cherry-pick ${hashes}`);
 
         return ActionFlags.None;
       },
@@ -208,36 +198,17 @@ export class Kind extends BaseKind<Params> {
 
     revert: {
       description:
-        "Revert the selected commit with `git revert --no-edit`. Requires confirmation.",
+        "Revert the selected commit via vim-fugitive's :Git revert. Requires vim-fugitive.",
       callback: async (args) => {
+        if (!await requireFugitive(args.denops)) return ActionFlags.None;
         for (const item of args.items) {
           const action = item?.action as ActionData;
           if (action.fullHash === "") continue;
 
-          const confirm = await fn.confirm(
+          await callFugitiveGit(
             args.denops,
-            `Revert "${action.shortHash} ${action.subject}"?`,
-            "&Yes\n&No",
-            2,
-          ) as number;
-          if (confirm !== 1) {
-            return ActionFlags.Persist;
-          }
-
-          const { success, out, err } = await runGit(
-            ["revert", "--no-edit", action.fullHash],
             action.cwd,
-          );
-          if (!success) {
-            await openNofileBuffer(
-              args.denops,
-              combineOutput(out, err).split("\n"),
-            );
-            return ActionFlags.None;
-          }
-          await echoLog(
-            args.denops,
-            combineOutput(out, err),
+            `revert ${action.fullHash}`,
           );
         }
 
