@@ -5,6 +5,7 @@ import {
 } from "@shougo/ddu-vim/types";
 import { BaseKind, type GetPreviewerArguments } from "@shougo/ddu-vim/kind";
 import * as fn from "@denops/std/function";
+import { combineOutput } from "@kmnk/ddu-git-utils/action";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { runGit } from "@kmnk/ddu-git-utils/git";
 import { WordActions } from "@shougo/ddu-kind-word";
@@ -75,11 +76,9 @@ export class Kind extends BaseKind<Params> {
       ["remote", "show", "-n", action.name],
       action.cwd,
     );
-    const combined = [out, err].filter((s) => s !== "").join("\n");
-
     return {
       kind: "nofile",
-      contents: combined.split("\n"),
+      contents: combineOutput(out, err).split("\n"),
     };
   }
 

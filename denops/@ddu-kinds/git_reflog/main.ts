@@ -6,7 +6,7 @@ import {
 import { BaseKind, type GetPreviewerArguments } from "@shougo/ddu-vim/kind";
 import * as fn from "@denops/std/function";
 import { echoErr } from "@kmnk/ddu-git-utils/echo";
-import { runGit } from "@kmnk/ddu-git-utils/git";
+import { commitSummaryArgs, runGit } from "@kmnk/ddu-git-utils/git";
 import { WordActions } from "@shougo/ddu-kind-word";
 
 export type ActionData = {
@@ -109,15 +109,7 @@ export class Kind extends BaseKind<Params> {
     const action = args.item.action as ActionData;
     if (!action.fullHash) return undefined;
 
-    const { out } = await runGit(
-      [
-        "show",
-        "--no-patch",
-        "--format=commit %H%nAuthor: %an <%ae>%nDate:   %ai%n%n    %s%n%n%b",
-        action.fullHash,
-      ],
-      action.cwd,
-    );
+    const { out } = await runGit(commitSummaryArgs(action.fullHash), action.cwd);
 
     return {
       kind: "nofile",

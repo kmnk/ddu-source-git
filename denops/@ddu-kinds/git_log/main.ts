@@ -9,7 +9,7 @@ import * as fn from "@denops/std/function";
 import { combineOutput, openNofileBuffer } from "@kmnk/ddu-git-utils/action";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { callFugitiveGit, requireFugitive } from "@kmnk/ddu-git-utils/fugitive";
-import { runGit } from "@kmnk/ddu-git-utils/git";
+import { commitSummaryArgs, runGit } from "@kmnk/ddu-git-utils/git";
 
 export type ActionData = {
   text: string;
@@ -294,15 +294,7 @@ export class Kind extends BaseKind<Params> {
     const action = args.item.action as ActionData;
     if (!action.fullHash) return undefined;
 
-    const { out } = await runGit(
-      [
-        "show",
-        "--no-patch",
-        "--format=commit %H%nAuthor: %an <%ae>%nDate:   %ai%n%n    %s%n%n%b",
-        action.fullHash,
-      ],
-      action.cwd,
-    );
+    const { out } = await runGit(commitSummaryArgs(action.fullHash), action.cwd);
 
     return {
       kind: "nofile",
