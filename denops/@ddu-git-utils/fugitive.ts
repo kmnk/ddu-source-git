@@ -1,6 +1,6 @@
 import type { Denops } from "@denops/std";
 import * as fn from "@denops/std/function";
-import { echoErr } from "./echo.ts";
+import { echoErr } from "@kmnk/ddu-git-utils/echo";
 
 /**
  * Check if vim-fugitive is available. Shows an error message if not.
