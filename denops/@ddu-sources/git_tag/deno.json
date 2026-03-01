@@ -5,11 +5,15 @@
     ".": "./main.ts"
   },
   "publish": {
-    "include": ["**/*.ts"]
+    "include": [
+      "**/*.ts"
+    ]
   },
   "imports": {
     "@denops/std": "jsr:@denops/std@~8.0.0",
     "@shougo/ddu-vim": "jsr:@shougo/ddu-vim@~11.0.0",
-    "@kmnk/ddu-kind-git_tag": "../../@ddu-kinds/git_tag/main.ts"
+    "@kmnk/ddu-kind-git_tag": "../../@ddu-kinds/git_tag/main.ts",
+    "@kmnk/ddu-git-utils/echo": "../../@ddu-git-utils/echo.ts",
+    "@kmnk/ddu-git-utils/git": "../../@ddu-git-utils/git.ts"
   }
 }

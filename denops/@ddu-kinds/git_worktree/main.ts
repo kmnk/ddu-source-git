@@ -1,4 +1,5 @@
 import {
+  type Action,
   ActionFlags,
   type Actions,
   type Previewer,
@@ -7,6 +8,7 @@ import { BaseKind, type GetPreviewerArguments } from "@shougo/ddu-vim/kind";
 import * as fn from "@denops/std/function";
 import { echoErr, echoLog } from "@kmnk/ddu-git-utils/echo";
 import { runGit } from "@kmnk/ddu-git-utils/git";
+import { WordActions } from "@shougo/ddu-kind-word";
 
 export type ActionData = {
   worktreePath: string;
@@ -24,17 +26,7 @@ type Params = {
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {
-    yank: {
-      description: "Yank the worktree path.",
-      callback: async (args) => {
-        for (const item of args.items) {
-          const action = item?.action as ActionData;
-          await fn.setreg(args.denops, '"', action.text);
-          await fn.setreg(args.denops, "*", action.text);
-        }
-        return ActionFlags.None;
-      },
-    },
+    yank: WordActions.yank as unknown as Action<Params>,
 
     cd: {
       description:

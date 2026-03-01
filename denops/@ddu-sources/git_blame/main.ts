@@ -10,6 +10,8 @@ import type { ActionData } from "@kmnk/ddu-kind-git_blame";
 
 import type { Denops } from "@denops/std";
 import * as fn from "@denops/std/function";
+import { echoErr } from "@kmnk/ddu-git-utils/echo";
+import { resolveCwd, runGit } from "@kmnk/ddu-git-utils/git";
 
 const ZERO_HASH = "0".repeat(40);
 
@@ -118,7 +120,7 @@ export class Source extends BaseSource<Params> {
     const { denops } = args;
     return new ReadableStream({
       async start(controller) {
-        const cwd = args.sourceParams.cwd || args.context.cwd;
+        const cwd = resolveCwd(args.sourceParams, args.context);
 
         let file = args.sourceParams.file;
         if (file === "") {
@@ -140,28 +142,20 @@ export class Source extends BaseSource<Params> {
           file,
         ];
 
-        const proc = new Deno.Command("git", {
-          args: cmdArgs,
-          cwd,
-          stdout: "piped",
-          stderr: "piped",
-        });
-        const { success, stdout, stderr } = await proc.output();
+        const { success, out, err } = await runGit(cmdArgs, cwd);
 
         if (!success) {
-          const err = new TextDecoder().decode(stderr).trim();
-          console.error(`[ddu-source-git_blame] ${err}`);
+          await echoErr(args.denops, err);
           controller.close();
           return;
         }
 
-        const output = new TextDecoder().decode(stdout);
-        if (output.trim() === "") {
+        if (out === "") {
           controller.close();
           return;
         }
 
-        const blocks = parseBlameOutput(output);
+        const blocks = parseBlameOutput(out);
         if (blocks.length === 0) {
           controller.close();
           return;

@@ -9,10 +9,16 @@ import { BaseSource } from "@shougo/ddu-vim/source";
 import type { ActionData } from "@kmnk/ddu-kind-git_worktree";
 
 import type { Denops } from "@denops/std";
+import { echoErr } from "@kmnk/ddu-git-utils/echo";
+import { resolveCwd, runGit } from "@kmnk/ddu-git-utils/git";
 
 type Params = {
   args: string[];
   cwd: string;
+  highlights: {
+    hash: string;
+    branch: string;
+  };
 };
 
 export class Source extends BaseSource<Params> {
@@ -26,25 +32,20 @@ export class Source extends BaseSource<Params> {
   }): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        const cwd = args.sourceParams.cwd || args.context.cwd;
+        const cwd = resolveCwd(args.sourceParams, args.context);
 
-        const proc = new Deno.Command("git", {
-          args: ["worktree", "list", "--porcelain", ...args.sourceParams.args],
+        const { success, out, err } = await runGit(
+          ["worktree", "list", "--porcelain", ...args.sourceParams.args],
           cwd,
-          stdout: "piped",
-          stderr: "piped",
-        });
-        const { success, stdout, stderr } = await proc.output();
+        );
 
         if (!success) {
-          const err = new TextDecoder().decode(stderr).trim();
-          console.error(`[ddu-source-git_worktree] ${err}`);
+          await echoErr(args.denops, err);
           controller.close();
           return;
         }
 
-        const output = new TextDecoder().decode(stdout).trim();
-        if (output === "") {
+        if (out === "") {
           controller.close();
           return;
         }
@@ -52,7 +53,7 @@ export class Source extends BaseSource<Params> {
         const enc = new TextEncoder();
 
         // Each worktree block is separated by a blank line
-        const blocks = output.split(/\n\n+/);
+        const blocks = out.split(/\n\n+/);
         const items: Item<ActionData>[] = [];
 
         for (const block of blocks) {
@@ -99,16 +100,18 @@ export class Source extends BaseSource<Params> {
           }  ${worktreePath}${statusSuffix}`;
           const word = `${branchDisplay}  ${worktreePath}`;
 
+          const { hash: hashHl, branch: branchHl } =
+            args.sourceParams.highlights;
           const highlights: ItemHighlight[] = [
             {
               name: "git_worktree-hash",
-              hl_group: "Identifier",
+              hl_group: hashHl,
               col: 1,
               width: enc.encode(shortHash).length,
             },
             {
               name: "git_worktree-branch",
-              hl_group: "Special",
+              hl_group: branchHl,
               col: enc.encode(shortHash).length + 3,
               width: enc.encode(branchDisplay).length,
             },
@@ -140,6 +143,10 @@ export class Source extends BaseSource<Params> {
     return {
       args: [],
       cwd: "",
+      highlights: {
+        hash: "Identifier",
+        branch: "Special",
+      },
     };
   }
 }

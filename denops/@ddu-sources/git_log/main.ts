@@ -9,6 +9,7 @@ import { BaseSource } from "@shougo/ddu-vim/source";
 import type { ActionData } from "@kmnk/ddu-kind-git_log";
 
 import type { Denops } from "@denops/std";
+import { createLineSplitter, resolveCwd } from "@kmnk/ddu-git-utils/git";
 
 type Params = {
   args: string[];
@@ -36,7 +37,7 @@ export class Source extends BaseSource<Params> {
 
     return new ReadableStream({
       async start(controller) {
-        const cwd = args.sourceParams.cwd || args.context.cwd;
+        const cwd = resolveCwd(args.sourceParams, args.context);
 
         const cmdArgs = [
           "log",
@@ -56,24 +57,9 @@ export class Source extends BaseSource<Params> {
         const { graph: graphHlGroup, node: nodeHlGroup, hash: hashHlGroup } =
           args.sourceParams.highlights;
 
-        let buf = "";
-        const lineSplitter = new TransformStream<string, string>({
-          transform(chunk, controller) {
-            buf += chunk;
-            const lines = buf.split("\n");
-            buf = lines.pop() ?? "";
-            for (const line of lines) {
-              controller.enqueue(line);
-            }
-          },
-          flush(controller) {
-            if (buf.length > 0) controller.enqueue(buf);
-          },
-        });
-
         const lineStream = proc.stdout
           .pipeThrough(new TextDecoderStream())
-          .pipeThrough(lineSplitter);
+          .pipeThrough(createLineSplitter());
 
         const batch: Item<ActionData>[] = [];
 

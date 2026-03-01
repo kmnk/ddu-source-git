@@ -8,7 +8,7 @@ import { WordActions } from "@shougo/ddu-kind-word";
 import * as fn from "@denops/std/function";
 import { openNofileBuffer } from "@kmnk/ddu-git-utils/action";
 import { echoErr } from "@kmnk/ddu-git-utils/echo";
-import { runGit } from "@kmnk/ddu-git-utils/git";
+import { commitSummaryArgs, runGit } from "@kmnk/ddu-git-utils/git";
 
 const ZERO_HASH = "0".repeat(40);
 
@@ -67,12 +67,7 @@ export class Kind extends BaseKind<Params> {
           if (action.fullHash === ZERO_HASH) continue;
 
           const { success, out, err } = await runGit(
-            [
-              "show",
-              "--no-patch",
-              "--format=commit %H%nAuthor: %an <%ae>%nDate:   %ai%n%n    %s%n%n%b",
-              action.fullHash,
-            ],
+            commitSummaryArgs(action.fullHash),
             action.cwd,
           );
           if (!success) {
@@ -93,12 +88,7 @@ export class Kind extends BaseKind<Params> {
     if (!action.fullHash || action.fullHash === ZERO_HASH) return undefined;
 
     const { out } = await runGit(
-      [
-        "show",
-        "--no-patch",
-        "--format=commit %H%nAuthor: %an <%ae>%nDate:   %ai%n%n    %s%n%n%b",
-        action.fullHash,
-      ],
+      commitSummaryArgs(action.fullHash),
       action.cwd,
     );
 

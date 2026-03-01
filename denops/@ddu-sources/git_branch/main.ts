@@ -9,6 +9,8 @@ import { BaseSource } from "@shougo/ddu-vim/source";
 import type { ActionData } from "@kmnk/ddu-kind-git_branch";
 
 import type { Denops } from "@denops/std";
+import { echoErr } from "@kmnk/ddu-git-utils/echo";
+import { resolveCwd, runGit } from "@kmnk/ddu-git-utils/git";
 
 type Params = {
   args: string[];
@@ -31,7 +33,7 @@ export class Source extends BaseSource<Params> {
   }): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
-        const cwd = args.sourceParams.cwd || args.context.cwd;
+        const cwd = resolveCwd(args.sourceParams, args.context);
 
         const cmdArgs = [
           "branch",
@@ -39,26 +41,19 @@ export class Source extends BaseSource<Params> {
           ...args.sourceParams.args,
         ];
 
-        const proc = new Deno.Command("git", {
-          args: cmdArgs,
-          cwd,
-          stdout: "piped",
-          stderr: "piped",
-        });
-        const { success, stdout, stderr } = await proc.output();
+        // runGit uses trimEnd (not trim) to preserve the leading whitespace
+        // in each line. %(HEAD) for a non-current branch is a single space,
+        // so trimming leading whitespace from the whole output would break
+        // field parsing.
+        const { success, out, err } = await runGit(cmdArgs, cwd);
 
         if (!success) {
-          const err = new TextDecoder().decode(stderr).trim();
-          console.error(`[ddu-source-git_branch] ${err}`);
+          await echoErr(args.denops, err);
           controller.close();
           return;
         }
 
-        // Do NOT trim() the whole output: %(HEAD) for a non-current branch is a
-        // single space character, so trimming would strip the leading " \t" of
-        // the first line and break field parsing.
-        const rawOutput = new TextDecoder().decode(stdout);
-        const lines = rawOutput.split("\n").filter((line) => line !== "");
+        const lines = out.split("\n").filter((line) => line !== "");
         if (lines.length === 0) {
           controller.close();
           return;

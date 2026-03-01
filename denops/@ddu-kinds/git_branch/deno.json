@@ -13,6 +13,7 @@
     "@kmnk/ddu-git-utils/echo": "../../@ddu-git-utils/echo.ts",
     "@kmnk/ddu-git-utils/fugitive": "../../@ddu-git-utils/fugitive.ts",
     "@kmnk/ddu-git-utils/git": "../../@ddu-git-utils/git.ts",
+    "@shougo/ddu-kind-word": "jsr:@shougo/ddu-kind-word@~1.0.0",
     "@shougo/ddu-vim": "jsr:@shougo/ddu-vim@~11.0.0"
   }
 }

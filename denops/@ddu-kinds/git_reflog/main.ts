@@ -6,7 +6,8 @@ import {
 import { BaseKind, type GetPreviewerArguments } from "@shougo/ddu-vim/kind";
 import * as fn from "@denops/std/function";
 import { echoErr } from "@kmnk/ddu-git-utils/echo";
-import { runGit } from "@kmnk/ddu-git-utils/git";
+import { commitSummaryArgs, runGit } from "@kmnk/ddu-git-utils/git";
+import { WordActions } from "@shougo/ddu-kind-word";
 
 export type ActionData = {
   shortHash: string;
@@ -22,17 +23,7 @@ type Params = Record<string, never>;
 
 export class Kind extends BaseKind<Params> {
   override actions: Actions<Params> = {
-    yank: {
-      description: "Yank the short hash.",
-      callback: async (args) => {
-        for (const item of args.items) {
-          const action = item?.action as ActionData;
-          await fn.setreg(args.denops, '"', action.text);
-          await fn.setreg(args.denops, "*", action.text);
-        }
-        return ActionFlags.None;
-      },
-    },
+    yank: WordActions.yank,
 
     reset: {
       description:
@@ -119,12 +110,7 @@ export class Kind extends BaseKind<Params> {
     if (!action.fullHash) return undefined;
 
     const { out } = await runGit(
-      [
-        "show",
-        "--no-patch",
-        "--format=commit %H%nAuthor: %an <%ae>%nDate:   %ai%n%n    %s%n%n%b",
-        action.fullHash,
-      ],
+      commitSummaryArgs(action.fullHash),
       action.cwd,
     );
 
